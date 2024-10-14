@@ -130,7 +130,7 @@ void flip_obtuse_edges(CDT& cdt) {
 }
 
 // Function to insert a point on the edge opposite to the obtuse angle
-void insert_midpoint_on_obtuse_edges(CDT& cdt) {
+void insert_midpoint_on_obtuse_edge(CDT& cdt) {
     // Vector to hold the faces for processing
     std::vector<Face_handle> faces_to_check;
 
@@ -153,6 +153,7 @@ void insert_midpoint_on_obtuse_edges(CDT& cdt) {
             // Insert the midpoint into the triangulation
             cdt.insert(midpoint);
             std::cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
+			return;
         }
     }
 }
@@ -264,6 +265,7 @@ int main(int argc, char* argv[])
     int count = 0;
     while(is_obtuse_triangulation(cdt) && count < 10) {
         insert_foot_of_altitude_on_obtuse_edges(cdt);
+		// insert_midpoint_on_obtuse_edge(cdt);
         count++;
     }
 
