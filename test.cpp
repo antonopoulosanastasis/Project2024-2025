@@ -130,17 +130,9 @@ void flip_obtuse_edges(CDT& cdt) {
 }
 
 // Function to insert a point on the edge opposite to the obtuse angle
-void insert_midpoint_on_obtuse_edge(CDT& cdt) {
-    // Vector to hold the faces for processing
-    std::vector<Face_handle> faces_to_check;
-
-    // Collect all finite faces into the vector
-    for (auto fit = cdt.finite_faces_begin(); fit != cdt.finite_faces_end(); ++fit) {
-        faces_to_check.push_back(fit);
-    }
-
+void insert_midpoint(CDT& cdt) {
     // Iterate over each face and check for obtuse angles
-    for (Face_handle f : faces_to_check) {
+    for (Face_handle f : cdt.finite_face_handles()) {
         int obtuse_index = find_obtuse_angle_index(f);
         if (obtuse_index != -1) {  // If there is an obtuse angle in the face
             // Get the two vertices opposite the obtuse angle
@@ -153,7 +145,7 @@ void insert_midpoint_on_obtuse_edge(CDT& cdt) {
             // Insert the midpoint into the triangulation
             cdt.insert(midpoint);
             std::cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
-			return;
+            return;
         }
     }
 }
@@ -176,22 +168,11 @@ Point foot_of_altitude(const Point& A, const Point& B, const Point& C) {
 }
 
 // Function to insert the foot of the altitude from the obtuse angle to the opposite side
-void insert_foot_of_altitude_on_obtuse_edges(CDT& cdt) {
-    // Vector to hold the faces that have obtuse angles
-    std::vector<Face_handle> obtuse_faces;
-
-    // First pass: collect all faces with obtuse angles
+void insert_foot_of_altitude(CDT& cdt) {
+    // Iterate over each face and check for obtuse angles
     for (Face_handle f : cdt.finite_face_handles()) {
-        int obtuse_index = find_obtuse_angle_index(f);
-        if (obtuse_index != -1) {
-            obtuse_faces.push_back(f);  // Collect face for later processing
-        }
-    }
-
-    // Second pass: modify the triangulation by inserting the foot of the altitude
-    for (Face_handle f : obtuse_faces) {
-        int obtuse_index = find_obtuse_angle_index(f);  // Recalculate in case of changes
-        if (obtuse_index != -1) {  // Recheck obtuse angle
+        int obtuse_index = find_obtuse_angle_index(f); 
+        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
             // Get the vertex at the obtuse angle
             Point obtuse_vertex = f->vertex(obtuse_index)->point();
 
@@ -205,7 +186,111 @@ void insert_foot_of_altitude_on_obtuse_edges(CDT& cdt) {
             // Insert the foot of the altitude into the triangulation
             cdt.insert(foot);
             std::cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
+            return;
         }
+    }
+}
+
+// Function to insert the centroid of the face with an obtuse angle
+void insert_centroid(CDT& cdt) {
+    // Iterate over each face and check for obtuse angles
+    for (Face_handle f : cdt.finite_face_handles()) {
+        int obtuse_index = find_obtuse_angle_index(f);
+        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
+            // Get the three vertices of the triangle
+            Point p1 = f->vertex(0)->point();
+            Point p2 = f->vertex(1)->point();
+            Point p3 = f->vertex(2)->point();
+
+            // Compute the centroid of the triangle
+            Point centroid = CGAL::centroid(p1, p2, p3);
+
+            // Insert the centroid into the triangulation
+            cdt.insert(centroid);
+            std::cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
+            return;
+        }
+    }
+}
+
+// Recursive function to try all combinations of Steiner point insertions
+void try_combinations(CDT& cdt, int max_depth, int current_depth, int& min_steiner_points,
+                      std::vector<std::string>& best_sequence, std::vector<std::string>& current_sequence) {
+    if (!is_obtuse_triangulation(cdt)) {
+        // If there are no more obtuse triangles, check if we used fewer Steiner points
+        if (current_depth < min_steiner_points) {
+            min_steiner_points = current_depth;
+            best_sequence = current_sequence;
+        }
+        return;
+    }
+    
+    if (current_depth >= max_depth) {
+        // Stop if we exceed the maximum number of Steiner points to try
+        return;
+    }
+
+    // Create a backup of the current triangulation
+    CDT backup = cdt;
+
+    // Try inserting the centroid
+    insert_centroid(cdt);
+    current_sequence.push_back("insert_centroid");
+    try_combinations(cdt, max_depth, current_depth + 1, min_steiner_points, best_sequence, current_sequence);
+    current_sequence.pop_back();
+    cdt = backup;  // Restore the triangulation state
+
+    // Try inserting the midpoint
+    insert_midpoint(cdt);
+    current_sequence.push_back("insert_midpoint");
+    try_combinations(cdt, max_depth, current_depth + 1, min_steiner_points, best_sequence, current_sequence);
+    current_sequence.pop_back();
+    cdt = backup;  // Restore the triangulation state
+
+    // Try inserting the foot of altitude
+    insert_foot_of_altitude(cdt);
+    current_sequence.push_back("insert_foot_of_altitude");
+    try_combinations(cdt, max_depth, current_depth + 1, min_steiner_points, best_sequence, current_sequence);
+    current_sequence.pop_back();
+    cdt = backup;  // Restore the triangulation state
+}
+
+// Function to apply a given sequence of insertions to the triangulation
+void apply_best_sequence(CDT& cdt, const std::vector<std::string>& best_sequence) {
+    for (const std::string& step : best_sequence) {
+        if (step == "insert_centroid") {
+            insert_centroid(cdt);
+        } else if (step == "insert_midpoint") {
+            insert_midpoint(cdt);
+        } else if (step == "insert_foot_of_altitude") {
+            insert_foot_of_altitude(cdt);
+        }
+        // Optionally, you can print or log each step as it is applied
+        std::cout << "Applied " << step << "\n";
+    }
+}
+
+void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points) {
+    int min_steiner_points = max_steiner_points;
+    std::vector<std::string> best_sequence;
+    std::vector<std::string> current_sequence;
+
+    // Start the recursive backtracking
+    try_combinations(cdt, max_steiner_points, 0, min_steiner_points, best_sequence, current_sequence);
+
+    // Output the best sequence and number of Steiner points used
+    if (min_steiner_points < max_steiner_points) {
+        std::cout << "Minimum Steiner points needed: " << min_steiner_points << "\n";
+        std::cout << "Best sequence of insertions: ";
+        for (const std::string& step : best_sequence) {
+            std::cout << step << " ";
+        }
+
+        // Apply the best sequence to the CDT
+        apply_best_sequence(cdt, best_sequence);
+        std::cout << "\n";
+    } else {
+        std::cout << "Could not eliminate all obtuse triangles within " << max_steiner_points << " insertions.\n";
     }
 }
 
@@ -263,11 +348,7 @@ int main(int argc, char* argv[])
     }
 
     int count = 0;
-    while(is_obtuse_triangulation(cdt) && count < 10) {
-        insert_foot_of_altitude_on_obtuse_edges(cdt);
-		// insert_midpoint_on_obtuse_edge(cdt);
-        count++;
-    }
+    brute_force_steiner_insertion(cdt, 10);
 
     if (is_obtuse_triangulation(cdt)) {
         std::cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -275,7 +356,7 @@ int main(int argc, char* argv[])
         std::cout << "All triangles in the triangulation are acute or right-angled.\n";
     }
 
-    std::cout << count << '\n';
+    std::cout << "Steiner count: "<< count << '\n';
 
     // Draw the triangulation using CGAL's draw function
     CGAL::draw(cdt);
