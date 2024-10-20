@@ -92,21 +92,21 @@ bool is_obtuse_triangulation(CDT cdt) {
 
 // Function to get the circumcenter of a face (triangle)
 Point get_circumcenter(Face_handle face) {
-    // Get the vertices of the triangle
-    Point p1 = face->vertex(0)->point();
-    Point p2 = face->vertex(1)->point();
-    Point p3 = face->vertex(2)->point();
+	// Get the vertices of the triangle
+	Point p1 = face->vertex(0)->point();
+	Point p2 = face->vertex(1)->point();
+	Point p3 = face->vertex(2)->point();
 
-    // CGAL provides a built-in function to compute the circumcenter
-    return CGAL::circumcenter(p1, p2, p3);
+	// CGAL provides a built-in function to compute the circumcenter
+	return CGAL::circumcenter(p1, p2, p3);
 }
 
 // Function to get the centroid of a face (triangle)
 Point get_centroid(Face_handle face) {
 	// Get the vertices of the triangle
 	Point p1 = face->vertex(0)->point();
-    Point p2 = face->vertex(1)->point();
-    Point p3 = face->vertex(2)->point();
+	Point p2 = face->vertex(1)->point();
+	Point p3 = face->vertex(2)->point();
 
 	// CGAL provides a built-in function to compute the centroid
 	return CGAL::centroid(p1, p2, p3);
