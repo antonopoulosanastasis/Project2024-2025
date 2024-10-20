@@ -88,6 +88,19 @@ bool is_obtuse_triangulation(CDT cdt) {
     return false; // No obtuse angles found in any faces
 }
 
+// Function to get the circumcenter of a face (triangle)
+Point get_circumcenter(Face_handle face) {
+    // Get the vertices of the triangle
+    Point p1 = face->vertex(0)->point();
+    Point p2 = face->vertex(1)->point();
+    Point p3 = face->vertex(2)->point();
+
+    // CGAL provides a built-in function to compute the circumcenter
+    Point circumcenter = CGAL::circumcenter(p1, p2, p3);
+
+    return circumcenter;
+}
+
 // Helper function to find the index of the obtuse angle in a face
 int find_obtuse_angle_index(Face_handle f) {
     // Get the vertices of the face
