@@ -240,6 +240,7 @@ void insert_centroid(CDT& cdt) {
 // Recursive function to try all combinations of Steiner point insertions
 void try_combinations(CDT& cdt, int max_depth, int current_depth, int& min_steiner_points,
     std::vector<std::string>& best_sequence, std::vector<std::string>& current_sequence) {
+
     if (!is_obtuse_triangulation(cdt)) {
         // If there are no more obtuse triangles, check if we used fewer Steiner points
         if (current_depth < min_steiner_points) {
@@ -399,7 +400,7 @@ int main(int argc, char* argv[])
     }
 
     int count = 0;
-    brute_force_steiner_insertion(cdt, 10);
+    // brute_force_steiner_insertion(cdt, 10);		(needs to be fixed)
 
     if (is_obtuse_triangulation(cdt)) {
         std::cout << "The triangulation contains at least one obtuse triangle.\n";
