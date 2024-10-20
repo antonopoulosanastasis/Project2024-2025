@@ -1,6 +1,7 @@
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 //#include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/draw_constrained_triangulation_2.h>
+#include <CGAL/Polygon_2.h>
 #include <boost/json/src.hpp> // Necessary for Boost.JSON
 #include <boost/json/value.hpp>
 #include <boost/json/serialize.hpp>
@@ -19,6 +20,7 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<K, CGAL::Default, Itag> CDT;
 typedef CDT::Point Point;
 typedef CDT::Edge Edge;
 typedef CDT::Face_handle Face_handle;
+typedef CGAL::Polygon_2<K> Polygon_2;
 
 namespace json = boost::json;
 
@@ -96,9 +98,18 @@ Point get_circumcenter(Face_handle face) {
     Point p3 = face->vertex(2)->point();
 
     // CGAL provides a built-in function to compute the circumcenter
-    Point circumcenter = CGAL::circumcenter(p1, p2, p3);
+    return CGAL::circumcenter(p1, p2, p3);
+}
 
-    return circumcenter;
+// Function to get the centroid of a face (triangle)
+Point get_centroid(Face_handle face) {
+	// Get the vertices of the triangle
+	Point p1 = face->vertex(0)->point();
+    Point p2 = face->vertex(1)->point();
+    Point p3 = face->vertex(2)->point();
+
+	// CGAL provides a built-in function to compute the centroid
+	return CGAL::centroid(p1, p2, p3);
 }
 
 // Helper function to find the index of the obtuse angle in a face
@@ -228,7 +239,7 @@ void insert_centroid(CDT& cdt) {
 
 // Recursive function to try all combinations of Steiner point insertions
 void try_combinations(CDT& cdt, int max_depth, int current_depth, int& min_steiner_points,
-                      std::vector<std::string>& best_sequence, std::vector<std::string>& current_sequence) {
+    std::vector<std::string>& best_sequence, std::vector<std::string>& current_sequence) {
     if (!is_obtuse_triangulation(cdt)) {
         // If there are no more obtuse triangles, check if we used fewer Steiner points
         if (current_depth < min_steiner_points) {
@@ -304,6 +315,33 @@ void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points) {
         std::cout << "\n";
     } else {
         std::cout << "Could not eliminate all obtuse triangles within " << max_steiner_points << " insertions.\n";
+    }
+}
+
+// Function to insert the circumcenter or centroid of the face with an obtuse angle
+void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
+    // Iterate over each face and check for obtuse angles
+    for (Face_handle f : cdt.finite_face_handles()) {
+        int obtuse_index = find_obtuse_angle_index(f);
+        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
+            // Compute the circumcenter of the triangle
+            Point circumcenter = get_circumcenter(f);
+
+            // Check if the circumcenter is inside or on the boundary of the polygon
+            CGAL::Bounded_side circumcenter_location = CGAL::bounded_side_2(polygon.vertices_begin(), polygon.vertices_end(), circumcenter, K());
+
+            if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
+                // If the circumcenter is inside or on the boundary, insert it
+                cdt.insert(circumcenter);
+                //std::cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
+            } else {
+                // Otherwise, compute and insert the centroid
+                Point centroid = get_centroid(f);
+                cdt.insert(centroid);
+                //std::cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
+            }
+            return;
+        }
     }
 }
 
