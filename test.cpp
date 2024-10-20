@@ -2,6 +2,7 @@
 //#include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/draw_constrained_triangulation_2.h>
 #include <CGAL/Polygon_2.h>
+#include <CGAL/enum.h>
 #include <boost/json/src.hpp> // Necessary for Boost.JSON
 #include <boost/json/value.hpp>
 #include <boost/json/serialize.hpp>
@@ -11,6 +12,7 @@
 #include <cassert>
 #include <iostream>
 #include <vector>
+#include <cstdlib>
 
 #include "custom_cdt.h"
 
@@ -20,6 +22,7 @@ typedef Custom_Constrained_Delaunay_triangulation_2<K, CGAL::Default, Itag> CDT;
 typedef CDT::Point Point;
 typedef CDT::Edge Edge;
 typedef CDT::Face_handle Face_handle;
+typedef K::Point_2 Point_2;
 typedef CGAL::Polygon_2<K> Polygon_2;
 
 namespace json = boost::json;
@@ -90,6 +93,17 @@ bool is_obtuse_triangulation(CDT cdt) {
     return false; // No obtuse angles found in any faces
 }
 
+// Function to count obtuse angles of a triangulation 
+int count_obtuse_angles(CDT cdt) {
+    int count = 0;
+    for (Face_handle f : cdt.finite_face_handles()) {
+        if (has_obtuse_angle(f)) {
+            count++; // Found a face with an obtuse angle, exit early
+        }
+    }
+    return count; // No obtuse angles found in any faces
+}
+
 // Function to get the circumcenter of a face (triangle)
 Point get_circumcenter(Face_handle face) {
 	// Get the vertices of the triangle
@@ -151,6 +165,14 @@ void flip_obtuse_edges(CDT& cdt) {
             }
         }
     }
+}
+
+// Function to check if the point is outside the polygon
+bool is_point_outside_polygon(const Polygon_2& polygon, const Point_2& point) {
+    CGAL::Bounded_side result = CGAL::bounded_side_2(polygon.vertices_begin(), polygon.vertices_end(), point, K());
+
+    // Return true if the point is outside the polygon
+    return (result == CGAL::ON_UNBOUNDED_SIDE);
 }
 
 // Function to insert a point on the edge opposite to the obtuse angle
@@ -239,6 +261,20 @@ void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             }
             return;
         }
+    }
+}
+
+// Function to apply a given sequence of insertions to the triangulation
+void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const std::vector<std::string>& sequence) {
+    for (const std::string& step : sequence) {
+        if (step == "insert_circumcenter") {
+            insert_circumcenter(cdt, polygon);
+        } else if (step == "insert_midpoint") {
+            insert_midpoint(cdt);
+        } else if (step == "insert_foot_of_altitude") {
+            insert_foot_of_altitude(cdt);
+        }
+        std::cout << "Applied " << step << "\n";
     }
 }
 
