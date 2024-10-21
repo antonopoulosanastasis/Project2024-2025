@@ -30,9 +30,10 @@ endif()
 
 
 # include for local directory
-
+include_directories(${CMAKE_SOURCE_DIR}/includes/utils)
+add_subdirectory(includes/utils)
 # include for local package
-
+find_package(Qt5 REQUIRED COMPONENTS Widgets)
 
 # Creating entries for target: const
 # ############################
@@ -42,7 +43,7 @@ add_executable( test test.cpp )
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS test )
 
 # Link the executable to CGAL and third-party libraries
-target_link_libraries(test PRIVATE CGAL::CGAL )
+target_link_libraries(test PRIVATE CGAL::CGAL Utils Qt5::Widgets )
 
 if (CGAL_Qt5_FOUND)
   add_definitions(-DCGAL_USE_BASIC_VIEWER)
