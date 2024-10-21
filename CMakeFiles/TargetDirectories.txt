@@ -1,6 +1,0 @@
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/CGAL_Qt5_moc_and_resources.dir
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/test.dir
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/edit_cache.dir
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/rebuild_cache.dir
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/CGAL_Qt5_moc_and_resources_autogen_timestamp_deps.dir
-/root/bruh/CGAL-5.6.1/project/CMakeFiles/CGAL_Qt5_moc_and_resources_autogen.dir
