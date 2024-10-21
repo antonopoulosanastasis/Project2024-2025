@@ -36,61 +36,6 @@ std::vector<std::pair<int, int>> deserialize_constraints(const json::array& json
     return constraints;
 }
 
-// Helper function to check if the angle at p1 between p0 and p2 is obtuse
-bool is_obtuse_angle(const Point& p0, const Point& p1, const Point& p2) {
-    // Vector p0 -> p1 and p2 -> p1
-    K::Vector_2 v1 = p0 - p1;
-    K::Vector_2 v2 = p2 - p1;
-    
-    // Compute the dot product
-    auto dot_product = v1 * v2;
-    
-    // The angle is obtuse if the dot product is negative
-    return dot_product < 0;
-}
-
-// Function to check if a face contains any obtuse angles
-bool has_obtuse_angle(Face_handle f) {
-    // Get the three vertices of the face
-    Point p0 = f->vertex(0)->point();
-    Point p1 = f->vertex(1)->point();
-    Point p2 = f->vertex(2)->point();
-    
-    // Check all three angles
-    if (is_obtuse_angle(p1, p0, p2)) {
-        return true;  // Angle at p0 is obtuse
-    }
-    if (is_obtuse_angle(p0, p1, p2)) {
-        return true;  // Angle at p1 is obtuse
-    }
-    if (is_obtuse_angle(p0, p2, p1)) {
-        return true;  // Angle at p2 is obtuse
-    }
-
-    return false;  // No obtuse angles found
-}
-
-// Function to check if a triangulation is obtuse
-bool is_obtuse_triangulation(CDT cdt) {
-    for (Face_handle f : cdt.finite_face_handles()) {
-        if (has_obtuse_angle(f)) {
-            return true; // Found a face with an obtuse angle, exit early
-        }
-    }
-    return false; // No obtuse angles found in any faces
-}
-
-// Function to count obtuse angles of a triangulation 
-int count_obtuse_angles(CDT cdt) {
-    int count = 0;
-    for (Face_handle f : cdt.finite_face_handles()) {
-        if (has_obtuse_angle(f)) {
-            count++; // Found a face with an obtuse angle, exit early
-        }
-    }
-    return count; // No obtuse angles found in any faces
-}
-
 // Function to get the circumcenter of a face (triangle)
 Point get_circumcenter(Face_handle face) {
 	// Get the vertices of the triangle
@@ -111,26 +56,6 @@ Point get_centroid(Face_handle face) {
 
 	// CGAL provides a built-in function to compute the centroid
 	return CGAL::centroid(p1, p2, p3);
-}
-
-// Helper function to find the index of the obtuse angle in a face
-int find_obtuse_angle_index(Face_handle f) {
-    // Get the vertices of the face
-    Point p0 = f->vertex(0)->point();
-    Point p1 = f->vertex(1)->point();
-    Point p2 = f->vertex(2)->point();
-    
-    // Check which angle is obtuse
-    if (is_obtuse_angle(p1, p0, p2)) {
-        return 0;  // Angle at vertex 0 is obtuse
-    }
-    if (is_obtuse_angle(p0, p1, p2)) {
-        return 1;  // Angle at vertex 1 is obtuse
-    }
-    if (is_obtuse_angle(p0, p2, p1)) {
-        return 2;  // Angle at vertex 2 is obtuse
-    }
-    return -1;  // No obtuse angle
 }
 
 // Function to flip the edge opposite to the obtuse angle in a face
@@ -162,10 +87,31 @@ bool is_point_outside_polygon(const Polygon_2& polygon, const Point_2& point) {
     return (result == CGAL::ON_UNBOUNDED_SIDE);
 }
 
+// Function to remove faces outside boundary from a face vector
+void remove_faces_outside_boundary(std::vector<CDT::Face_handle>& face_vector, const Polygon_2& boundary) {
+	std::vector<CDT::Face_handle>::iterator it = face_vector.begin();
+
+	// Iterate through the vector and remove faces based on the condition
+	while (it != face_vector.end()) {
+		if (is_point_outside_polygon(boundary, get_centroid(*it)) ) {
+			it = face_vector.erase(it); // Remove face and get new iterator
+		} else {
+			++it; // Move to the next face
+		}
+	}
+}
+
 // Function to insert a point on the edge opposite to the obtuse angle
-void insert_midpoint(CDT& cdt) {
+void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
+	// face_handles vector will store faces inside given boundary
+	std::vector<Face_handle> face_handles;
+	for (Face_handle face : cdt.finite_face_handles()) {
+		face_handles.push_back(face);
+	}
+	remove_faces_outside_boundary(face_handles, boundary);
+
     // Iterate over each face and check for obtuse angles
-    for (Face_handle f : cdt.finite_face_handles()) {
+    for (Face_handle f : face_handles) {
         int obtuse_index = find_obtuse_angle_index(f);
         if (obtuse_index != -1) {  // If there is an obtuse angle in the face
             // Get the two vertices opposite the obtuse angle
@@ -201,9 +147,16 @@ Point foot_of_altitude(const Point& A, const Point& B, const Point& C) {
 }
 
 // Function to insert the foot of the altitude from the obtuse angle to the opposite side
-void insert_foot_of_altitude(CDT& cdt) {
+void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
+
+	// face_handles vector will store faces inside given boundary
+	std::vector<Face_handle> face_handles;
+	for (Face_handle face : cdt.finite_face_handles()) {
+		face_handles.push_back(face);
+	}
+	remove_faces_outside_boundary(face_handles, polygon);
     // Iterate over each face and check for obtuse angles
-    for (Face_handle f : cdt.finite_face_handles()) {
+    for (Face_handle f : face_handles) {
         int obtuse_index = find_obtuse_angle_index(f); 
         if (obtuse_index != -1) {  // If there is an obtuse angle in the face
             // Get the vertex at the obtuse angle
@@ -226,8 +179,14 @@ void insert_foot_of_altitude(CDT& cdt) {
 
 // Function to insert the circumcenter or centroid of the face with an obtuse angle
 void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
+	// face_handles vector will store faces inside given boundary
+	std::vector<Face_handle> face_handles;
+	for (Face_handle face : cdt.finite_face_handles()) {
+		face_handles.push_back(face);
+	}
+	remove_faces_outside_boundary(face_handles, polygon);
     // Iterate over each face and check for obtuse angles
-    for (Face_handle f : cdt.finite_face_handles()) {
+    for (Face_handle f : face_handles) {
         int obtuse_index = find_obtuse_angle_index(f);
         if (obtuse_index != -1) {  // If there is an obtuse angle in the face
             // Compute the circumcenter of the triangle
@@ -257,9 +216,9 @@ void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const std::vector<std::s
         if (step == "insert_circumcenter") {
             insert_circumcenter(cdt, polygon);
         } else if (step == "insert_midpoint") {
-            insert_midpoint(cdt);
+            insert_midpoint(cdt, polygon);
         } else if (step == "insert_foot_of_altitude") {
-            insert_foot_of_altitude(cdt);
+            insert_foot_of_altitude(cdt, polygon);
         }
         std::cout << "Applied " << step << "\n";
     }
@@ -296,14 +255,14 @@ void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_d
     cdt = backup;  // Restore triangulation
 
     // Try inserting the midpoint
-    insert_midpoint(cdt);
+    insert_midpoint(cdt, polygon);
     current_sequence.push_back("insert_midpoint");
     try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
     current_sequence.pop_back();
     cdt = backup;  // Restore triangulation
 
     // Try inserting the foot of altitude
-    insert_foot_of_altitude(cdt);
+    insert_foot_of_altitude(cdt, polygon);
     current_sequence.push_back("insert_foot_of_altitude");
     try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
     current_sequence.pop_back();

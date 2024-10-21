@@ -2,6 +2,18 @@
 #include "obtuse.h"
 #include "definitions.h"
 
+
+// Function to count obtuse angles of a triangulation 
+int count_obtuse_angles(CDT cdt) {
+    int count = 0;
+    for (Face_handle f : cdt.finite_face_handles()) {
+        if (has_obtuse_angle(f)) {
+            count++; // Found a face with an obtuse angle, exit early
+        }
+    }
+    return count; // No obtuse angles found in any faces
+}
+
 // Helper function to check if the angle at p1 between p0 and p2 is obtuse
 bool is_obtuse_angle(const Point& p0, const Point& p1, const Point& p2) {
     // Vector p0 -> p1 and p2 -> p1

@@ -3,6 +3,9 @@
 
 #include "definitions.h"
 
+// Function to count obtuse angles of a triangulation 
+int count_obtuse_angles(CDT cdt);
+
 // Function to deserialize constraints from JSON
 bool is_obtuse_angle(const Point& p0, const Point& p1, const Point& p2);
 
