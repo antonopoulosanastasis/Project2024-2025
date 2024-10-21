@@ -1,29 +1,16 @@
-#include <CGAL/Exact_predicates_exact_constructions_kernel.h>
-//#include <CGAL/Constrained_Delaunay_triangulation_2.h>
 #include <CGAL/draw_constrained_triangulation_2.h>
-#include <CGAL/Polygon_2.h>
-#include <CGAL/enum.h>
-#include <boost/json/src.hpp> // Necessary for Boost.JSON
-#include <boost/json/value.hpp>
-#include <boost/json/serialize.hpp>
-#include <boost/json/parse.hpp>
 #include <fstream>
 #include <sstream>
 #include <cassert>
 #include <iostream>
-#include <vector>
-#include <cstdlib>
+#include <boost/json/src.hpp> // Necessary for Boost.JSON
+#include <boost/json/value.hpp>
+#include <boost/json/serialize.hpp>
+#include <boost/json/parse.hpp>
 
-#include "custom_cdt.h"
+#include "obtuse.h"
+#include "definitions.h"
 
-typedef CGAL::Exact_predicates_exact_constructions_kernel K;
-typedef CGAL::Exact_predicates_tag Itag;
-typedef Custom_Constrained_Delaunay_triangulation_2<K, CGAL::Default, Itag> CDT;
-typedef CDT::Point Point;
-typedef CDT::Edge Edge;
-typedef CDT::Face_handle Face_handle;
-typedef K::Point_2 Point_2;
-typedef CGAL::Polygon_2<K> Polygon_2;
 
 namespace json = boost::json;
 
