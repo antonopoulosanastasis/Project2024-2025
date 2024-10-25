@@ -1,9 +1,10 @@
 #include <CGAL/draw_constrained_triangulation_2.h>
 #include <fstream>
-#include <sstream>
 #include <cassert>
 #include <iostream>
-#include <boost/json/src.hpp> // Necessary for Boost.JSON
+#include <CGAL/Gmpq.h>			// For output.json fractions
+#include <sstream>
+#include <boost/json/src.hpp> 	// Necessary for Boost.JSON
 #include <boost/json/value.hpp>
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
@@ -13,11 +14,15 @@
 
 
 namespace json = boost::json;
+using namespace std;
+
+// Global vector to store steiner points for output.json
+vector<Point_2> steiner_points;
 
 // Function to deserialize points from JSON arrays
-std::vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
-    std::vector<Point> points;
-    for (std::size_t i = 0; i < points_x.size(); ++i) {
+vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
+    vector<Point> points;
+    for (size_t i = 0; i < points_x.size(); ++i) {
         int x = points_x[i].as_int64();
         int y = points_y[i].as_int64();
         points.push_back(Point(x, y));
@@ -26,14 +31,47 @@ std::vector<Point> deserialize_points(const json::array& points_x, const json::a
 }
 
 // Function to deserialize constraints from JSON
-std::vector<std::pair<int, int>> deserialize_constraints(const json::array& json_constraints) {
-    std::vector<std::pair<int, int>> constraints;
+vector<pair<int, int>> deserialize_constraints(const json::array& json_constraints) {
+    vector<pair<int, int>> constraints;
     for (const auto& json_constraint : json_constraints) {
         int first = json_constraint.at(0).as_int64();
         int second = json_constraint.at(1).as_int64();
         constraints.push_back({first, second});
     }
     return constraints;
+}
+
+// Function to turn a rational to fraction as a string
+string to_fraction_string(const CGAL::Gmpq& rational) {
+    ostringstream oss;
+    oss << rational.numerator() << "/" << rational.denominator();
+    return oss.str();
+}
+
+// Function to create output.json
+void export_to_json(const vector<Point_2>& points, const string& filename, const string& instance_uid) {
+    json::object json_output;
+    json::array steiner_points_x, steiner_points_y;
+
+    for (const auto& point : points) {
+        // Convert coordinates to rational numbers
+        CGAL::Gmpq x_rational(CGAL::to_double(point.x()));
+        CGAL::Gmpq y_rational(CGAL::to_double(point.y()));
+
+		// Here we use emplace_back instead of push_back so we won't have
+		// to create the object before pushing inserting it in the array
+        steiner_points_x.emplace_back(to_fraction_string(x_rational));
+        steiner_points_y.emplace_back(to_fraction_string(y_rational));
+    }
+
+	json_output["content_type"] = "CG_SHOP_2025_Solution";
+	json_output["instance_uid"] = instance_uid;
+    json_output["steiner_points_x"] = steiner_points_x;
+    json_output["steiner_points_y"] = steiner_points_y;
+	// Missing edges for output
+
+    ofstream file(filename);
+    file << json::serialize(json_output);
 }
 
 // Function to get the circumcenter of a face (triangle)
@@ -70,10 +108,10 @@ void flip_obtuse_edges(CDT& cdt) {
             if (1) {
                 // Perform the edge flip
                 cdt.flip(f, opposite_edge_index);
-                std::cout << "Flipped edge opposite to obtuse angle in triangle.\n";
+                cout << "Flipped edge opposite to obtuse angle in triangle.\n";
                 return;
             } else {
-                std::cout << "Edge is not flippable.\n";
+                cout << "Edge is not flippable.\n";
             }
         }
     }
@@ -88,8 +126,8 @@ bool is_point_outside_polygon(const Polygon_2& polygon, const Point_2& point) {
 }
 
 // Function to remove faces outside boundary from a face vector
-void remove_faces_outside_boundary(std::vector<CDT::Face_handle>& face_vector, const Polygon_2& boundary) {
-	std::vector<CDT::Face_handle>::iterator it = face_vector.begin();
+void remove_faces_outside_boundary(vector<CDT::Face_handle>& face_vector, const Polygon_2& boundary) {
+	vector<CDT::Face_handle>::iterator it = face_vector.begin();
 
 	// Iterate through the vector and remove faces based on the condition
 	while (it != face_vector.end()) {
@@ -104,7 +142,7 @@ void remove_faces_outside_boundary(std::vector<CDT::Face_handle>& face_vector, c
 // Function to insert a point on the edge opposite to the obtuse angle
 void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 	// face_handles vector will store faces inside given boundary
-	std::vector<Face_handle> face_handles;
+	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
 		face_handles.push_back(face);
 	}
@@ -123,7 +161,8 @@ void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 
             // Insert the midpoint into the triangulation
             cdt.insert(midpoint);
-            std::cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
+			steiner_points.push_back(midpoint);
+            cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
             return;
         }
     }
@@ -150,7 +189,7 @@ Point foot_of_altitude(const Point& A, const Point& B, const Point& C) {
 void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 
 	// face_handles vector will store faces inside given boundary
-	std::vector<Face_handle> face_handles;
+	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
 		face_handles.push_back(face);
 	}
@@ -171,7 +210,8 @@ void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 
             // Insert the foot of the altitude into the triangulation
             cdt.insert(foot);
-            std::cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
+			steiner_points.push_back(foot);
+            cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
             return;
         }
     }
@@ -180,7 +220,7 @@ void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 // Function to insert the circumcenter or centroid of the face with an obtuse angle
 void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
 	// face_handles vector will store faces inside given boundary
-	std::vector<Face_handle> face_handles;
+	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
 		face_handles.push_back(face);
 	}
@@ -198,12 +238,14 @@ void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
                 // If the circumcenter is inside or on the boundary, insert it
                 cdt.insert(circumcenter);
-                //std::cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
+				steiner_points.push_back(circumcenter);
+                //cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
             } else {
                 // Otherwise, compute and insert the centroid
                 Point centroid = get_centroid(f);
                 cdt.insert(centroid);
-                //std::cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
+				steiner_points.push_back(centroid);
+                //cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
             }
             return;
         }
@@ -211,8 +253,8 @@ void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
 }
 
 // Function to apply a given sequence of insertions to the triangulation
-void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const std::vector<std::string>& sequence) {
-    for (const std::string& step : sequence) {
+void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence) {
+    for (const string& step : sequence) {
         if (step == "insert_circumcenter") {
             insert_circumcenter(cdt, polygon);
         } else if (step == "insert_midpoint") {
@@ -220,13 +262,13 @@ void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const std::vector<std::s
         } else if (step == "insert_foot_of_altitude") {
             insert_foot_of_altitude(cdt, polygon);
         }
-        std::cout << "Applied " << step << "\n";
+        cout << "Applied " << step << "\n";
     }
 }
 
 void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_depth, 
-                      int& min_obtuse_angles, std::vector<std::string>& best_sequence, 
-                      std::vector<std::string>& current_sequence, 
+                      int& min_obtuse_angles, vector<string>& best_sequence, 
+                      vector<string>& current_sequence, 
                       int& min_steiner_points) {
     
     int current_obtuse_angles = count_obtuse_angles(cdt);  // Count obtuse angles in the current triangulation
@@ -270,9 +312,9 @@ void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_d
 }
 
 void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon) {
-    int min_obtuse_angles = std::numeric_limits<int>::max();
-    std::vector<std::string> best_sequence;
-    std::vector<std::string> current_sequence;
+    int min_obtuse_angles = numeric_limits<int>::max();
+    vector<string> best_sequence;
+    vector<string> current_sequence;
     int min_steiner_points = max_steiner_points; // Reset for the minimum Steiner points used
 
     // Start recursive backtracking
@@ -280,16 +322,16 @@ void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& 
 
     if (!best_sequence.empty()) {
         // If a triangulation was found
-        std::cout << "Minimum obtuse angles: " << min_obtuse_angles << "\n";
-        std::cout << "Steiner points used: " << min_steiner_points << "\n";
-        std::cout << "Best sequence of insertions for minimum obtuse triangulation: ";
-        for (const std::string& step : best_sequence) {
-            std::cout << step << " ";
+        cout << "Minimum obtuse angles: " << min_obtuse_angles << "\n";
+        cout << "Steiner points used: " << min_steiner_points << "\n";
+        cout << "Best sequence of insertions for minimum obtuse triangulation: ";
+        for (const string& step : best_sequence) {
+            cout << step << " ";
         }
         apply_best_sequence(cdt, polygon, best_sequence);
-        std::cout << "\n";
+        cout << "\n";
     } else {
-        std::cout << "Could not reduce obtuse angles with given Steiner points.\n";
+        cout << "Could not reduce obtuse angles with given Steiner points.\n";
     }
 }
 
@@ -298,22 +340,22 @@ int main(int argc, char* argv[])
 
     // Check if filename is provided as an argument
     if (argc < 3) {
-        std::cerr << "Error: No input filename provided.\n";
-        std::cerr << "Usage: " << argv[0] << " <input_filename>\n";
+        cerr << "Error: No input filename provided.\n";
+        cerr << "Usage: " << argv[0] << " <input_filename>\n";
         return 1;
     }
 
     // Get the filename from the command-line argument
-    std::string filename = argv[1];
-    int steiner_points = std::stoi(argv[2]);
+    string filename = argv[1];
+    int steiner_points = stoi(argv[2]);
     // Read the file
-    std::ifstream in_file(filename);
+    ifstream in_file(filename);
     if (!in_file) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
+        cerr << "Error: Could not open file " << filename << endl;
         return 1;
     }
 
-    std::stringstream buffer;
+    stringstream buffer;
     buffer << in_file.rdbuf();
     json::value json_value = json::parse(buffer.str());
 
@@ -325,8 +367,8 @@ int main(int argc, char* argv[])
     json::array additional_constraints = json_data["additional_constraints"].as_array(); 
 
     // Deserialize points and constraints
-    std::vector<Point> points = deserialize_points(points_x, points_y);
-    std::vector<std::pair<int, int>> constraints = deserialize_constraints(additional_constraints);
+    vector<Point> points = deserialize_points(points_x, points_y);
+    vector<pair<int, int>> constraints = deserialize_constraints(additional_constraints);
 
     // Initialize the Constrained Delaunay Triangulation (CDT)
     CDT cdt;
@@ -349,29 +391,29 @@ int main(int argc, char* argv[])
 
     // You now have a polygon built from the region_boundary!
     // For example, print the vertices of the polygon:
-    std::cout << "Polygon vertices: " << std::endl;
+    cout << "Polygon vertices: " << endl;
     for (const auto& vertex : polygon.vertices()) {
-        std::cout << vertex << std::endl;
+        cout << vertex << endl;
     }
 
     if (is_obtuse_triangulation(cdt)) {
-        std::cout << "The triangulation contains at least one obtuse triangle.\n";
+        cout << "The triangulation contains at least one obtuse triangle.\n";
     } else {
-        std::cout << "All triangles in the triangulation are acute or right-angled.\n";
+        cout << "All triangles in the triangulation are acute or right-angled.\n";
     }
 
-    int count = 0;
-    std::cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+    // int count = 0;
+    cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
     brute_force_steiner_insertion(cdt, steiner_points, polygon);
 
     if (is_obtuse_triangulation(cdt)) {
-        std::cout << "The triangulation contains at least one obtuse triangle.\n";
+        cout << "The triangulation contains at least one obtuse triangle.\n";
     } else {
-        std::cout << "All triangles in the triangulation are acute or right-angled.\n";
+        cout << "All triangles in the triangulation are acute or right-angled.\n";
     }
 
-    std::cout << "Steiner count: "<< count << '\n';
-    std::cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+    // cout << "Steiner count: " << count << '\n';
+    cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
 
     // Draw the triangulation using CGAL's draw function
     CGAL::draw(cdt);
