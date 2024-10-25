@@ -17,7 +17,7 @@ namespace json = boost::json;
 using namespace std;
 
 // Global vector to store steiner points for output.json
-vector<Point_2> steiner_points;
+vector<Point_2> steiner;
 
 // Function to deserialize points from JSON arrays
 vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
@@ -41,15 +41,38 @@ vector<pair<int, int>> deserialize_constraints(const json::array& json_constrain
     return constraints;
 }
 
+// Converts CGALL::Gmpq to int
+int gmpq_to_int(const CGAL::Gmpq& value) {
+	if (value.denominator() == 1) {
+		return value.numerator().to_double();
+	} else {
+		return value.numerator().to_double() / value.denominator().to_double();
+	}
+}
+
 // Function to turn a rational to fraction as a string
 string to_fraction_string(const CGAL::Gmpq& rational) {
-    ostringstream oss;
-    oss << rational.numerator() << "/" << rational.denominator();
-    return oss.str();
+	ostringstream oss;
+	oss << rational.numerator() << "/" << rational.denominator();
+	return oss.str();
+}
+
+// Function to check if given value is integer
+bool is_integer(const CGAL::Gmpq& value) {
+	return value.numerator() % value.denominator() == 0;
+}
+
+// Function to determine the format of steiner point(fraction/integer)
+string format_value(const CGAL::Gmpq& value) {
+	if (is_integer(value)) {
+		return to_string(gmpq_to_int(value));
+	} else {
+		return to_fraction_string(value); // fraction
+	}
 }
 
 // Function to create output.json
-void export_to_json(const vector<Point_2>& points, const string& filename, const string& instance_uid) {
+void export_to_json(vector<Point_2>& points, const string& filename, json::string& instance_uid) {
 	json::object json_output;
 	json::array steiner_points_x, steiner_points_y;
 
@@ -59,9 +82,9 @@ void export_to_json(const vector<Point_2>& points, const string& filename, const
 		CGAL::Gmpq y_rational(CGAL::to_double(point.y()));
 
 		// Here we use emplace_back instead of push_back so we won't have
-		// to create the object before pushing inserting it in the array
-		steiner_points_x.emplace_back(to_fraction_string(x_rational));
-		steiner_points_y.emplace_back(to_fraction_string(y_rational));
+		// to create the object before inserting it in the array
+		steiner_points_x.emplace_back(format_value(x_rational));
+		steiner_points_y.emplace_back(format_value(y_rational));
 	}
 
 	json_output["content_type"] = "CG_SHOP_2025_Solution";
@@ -161,7 +184,7 @@ void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 
             // Insert the midpoint into the triangulation
             cdt.insert(midpoint);
-			steiner_points.push_back(midpoint);
+			steiner.push_back(midpoint);
             cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
             return;
         }
@@ -210,7 +233,7 @@ void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 
             // Insert the foot of the altitude into the triangulation
             cdt.insert(foot);
-			steiner_points.push_back(foot);
+			steiner.push_back(foot);
             cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
             return;
         }
@@ -238,13 +261,13 @@ void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
                 // If the circumcenter is inside or on the boundary, insert it
                 cdt.insert(circumcenter);
-				steiner_points.push_back(circumcenter);
+				steiner.push_back(circumcenter);
                 //cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
             } else {
                 // Otherwise, compute and insert the centroid
                 Point centroid = get_centroid(f);
                 cdt.insert(centroid);
-				steiner_points.push_back(centroid);
+				steiner.push_back(centroid);
                 //cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
             }
             return;
@@ -361,6 +384,7 @@ int main(int argc, char* argv[])
 
     // Extract data from the JSON
     json::object json_data = json_value.as_object();
+	json::string instance_uid = json_data["instance_uid"].as_string();
     json::array points_x = json_data["points_x"].as_array();
     json::array points_y = json_data["points_y"].as_array();
     json::array region_boundary = json_data["region_boundary"].as_array();
@@ -414,6 +438,8 @@ int main(int argc, char* argv[])
 
     // cout << "Steiner count: " << count << '\n';
     cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+
+	export_to_json(steiner, "output.json", instance_uid);
 
     // Draw the triangulation using CGAL's draw function
     CGAL::draw(cdt);
