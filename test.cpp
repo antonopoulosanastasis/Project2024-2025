@@ -50,28 +50,28 @@ string to_fraction_string(const CGAL::Gmpq& rational) {
 
 // Function to create output.json
 void export_to_json(const vector<Point_2>& points, const string& filename, const string& instance_uid) {
-    json::object json_output;
-    json::array steiner_points_x, steiner_points_y;
+	json::object json_output;
+	json::array steiner_points_x, steiner_points_y;
 
-    for (const auto& point : points) {
-        // Convert coordinates to rational numbers
-        CGAL::Gmpq x_rational(CGAL::to_double(point.x()));
-        CGAL::Gmpq y_rational(CGAL::to_double(point.y()));
+	for (const auto& point : points) {
+		// Convert coordinates to rational numbers
+		CGAL::Gmpq x_rational(CGAL::to_double(point.x()));
+		CGAL::Gmpq y_rational(CGAL::to_double(point.y()));
 
 		// Here we use emplace_back instead of push_back so we won't have
 		// to create the object before pushing inserting it in the array
-        steiner_points_x.emplace_back(to_fraction_string(x_rational));
-        steiner_points_y.emplace_back(to_fraction_string(y_rational));
-    }
+		steiner_points_x.emplace_back(to_fraction_string(x_rational));
+		steiner_points_y.emplace_back(to_fraction_string(y_rational));
+	}
 
 	json_output["content_type"] = "CG_SHOP_2025_Solution";
 	json_output["instance_uid"] = instance_uid;
-    json_output["steiner_points_x"] = steiner_points_x;
-    json_output["steiner_points_y"] = steiner_points_y;
-	// Missing edges for output
+	json_output["steiner_points_x"] = steiner_points_x;
+	json_output["steiner_points_y"] = steiner_points_y;
+	// json_output["edges"] = edges;
 
-    ofstream file(filename);
-    file << json::serialize(json_output);
+	ofstream file(filename);
+	file << json::serialize(json_output);
 }
 
 // Function to get the circumcenter of a face (triangle)
