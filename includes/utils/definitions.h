@@ -15,6 +15,7 @@ typedef CGAL::Constrained_Delaunay_triangulation_2<K, CGAL::Default, Itag> CDT;
 typedef CDT::Point Point;
 typedef CDT::Edge Edge;
 typedef CDT::Face_handle Face_handle;
+typedef CDT::Vertex_handle Vertex_handle;
 typedef CGAL::Polygon_2<K> Polygon_2;
 typedef K::Point_2 Point_2;
 
