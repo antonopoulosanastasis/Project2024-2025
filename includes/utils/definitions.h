@@ -18,6 +18,7 @@ typedef CDT::Face_handle Face_handle;
 typedef CDT::Vertex_handle Vertex_handle;
 typedef CGAL::Polygon_2<K> Polygon_2;
 typedef K::Point_2 Point_2;
+typedef K::Line_2 Line;
 
 
 #endif	// DEFINITIONS_H
