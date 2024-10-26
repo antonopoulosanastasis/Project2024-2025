@@ -217,25 +217,9 @@ Point insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 	return (Point)0;
 }
 
-// Function to compute the foot of the altitude from point A onto the line BC
-Point foot_of_altitude(const Point& A, const Point& B, const Point& C) {
-    // Vector from B to C
-    K::Vector_2 BC = C - B;
-    
-    // Vector from B to A
-    K::Vector_2 BA = A - B;
-    
-    // Projection of BA onto BC
-    K::FT scalar_proj = (BA * BC) / (BC * BC);
-    
-    // Compute the foot of the altitude
-    Point P = B + scalar_proj * BC;
-    
-    return P;
-}
-
-// Function to insert the foot of the altitude from the obtuse angle to the opposite side
-Point insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
+// Function to insert steiner point using
+// the projection of the obtuse angle to the opposite side
+Point insert_projection(CDT& cdt, const Polygon_2& polygon) {
 
 	// face_handles vector will store faces inside given boundary
 	vector<Face_handle> face_handles;
@@ -254,13 +238,12 @@ Point insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
             Point opposite_p1 = f->vertex((obtuse_index + 1) % 3)->point();
             Point opposite_p2 = f->vertex((obtuse_index + 2) % 3)->point();
 
-            // Compute the foot of the altitude from the obtuse vertex to the opposite edge
-            Point foot = foot_of_altitude(obtuse_vertex, opposite_p1, opposite_p2);
+			Line line(opposite_p1, opposite_p2);
+			Point projection = line.projection(obtuse_vertex);
 
-            // Insert the foot of the altitude into the triangulation
-            cdt.insert(foot);
-            cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
-            return foot;
+			cdt.insert(projection);
+
+			return projection;
         }
     }
 	return (Point)0;
@@ -308,8 +291,8 @@ void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& se
 			steiner.emplace_back(insert_circumcenter(cdt, polygon));
         } else if (step == "insert_midpoint") {
         	steiner.emplace_back(insert_midpoint(cdt, polygon));
-        } else if (step == "insert_foot_of_altitude") {
-            steiner.emplace_back(insert_foot_of_altitude(cdt, polygon));
+        } else if (step == "insert_projection") {
+            steiner.emplace_back(insert_projection(cdt, polygon));
         }
         cout << "Applied " << step << "\n";
     }
@@ -352,9 +335,9 @@ void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_d
     current_sequence.pop_back();
     cdt = backup;  // Restore triangulation
 
-    // Try inserting the foot of altitude
-    insert_foot_of_altitude(cdt, polygon);
-    current_sequence.push_back("insert_foot_of_altitude");
+    // Try inserting projection
+    insert_projection(cdt, polygon);
+    current_sequence.push_back("insert_projection");
     try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
     current_sequence.pop_back();
     cdt = backup;  // Restore triangulation
