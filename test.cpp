@@ -2,22 +2,20 @@
 #include <fstream>
 #include <cassert>
 #include <iostream>
-#include <CGAL/Gmpq.h>			// For output.json fractions
+#include <gmp.h>				// For output.json fractions
 #include <sstream>
 #include <boost/json/src.hpp> 	// Necessary for Boost.JSON
 #include <boost/json/value.hpp>
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
+#include <map>					// Necessary for vertex indices
 
 #include "obtuse.h"
 #include "definitions.h"
 
-
 namespace json = boost::json;
 using namespace std;
 
-// Global vector to store steiner points for output.json
-vector<Point_2> steiner;
 
 // Function to deserialize points from JSON arrays
 vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
@@ -41,57 +39,85 @@ vector<pair<int, int>> deserialize_constraints(const json::array& json_constrain
     return constraints;
 }
 
-// Converts CGALL::Gmpq to int
-int gmpq_to_int(const CGAL::Gmpq& value) {
-	if (value.denominator() == 1) {
-		return value.numerator().to_double();
+// Function to create a map of vertex handles to integer indexes
+map<Vertex_handle, int> create_vertex_indices(const CDT& cdt) {
+    map<Vertex_handle, int> vertex_indices;
+    int index = 0;
+    for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
+        vertex_indices[v] = index++;
+    }
+    return vertex_indices;
+}
+
+string rational_to_string(const K::FT& coord) {
+	string to_return;
+	auto exact_coord = CGAL::exact(coord);
+
+	// Convert the exact coordinate to a GMP rational (mpq_t)
+	const mpq_t* gmpq_ptr = reinterpret_cast<mpq_t*>(&exact_coord);
+
+	// Declare GMP integers to hold the numerator and denominator
+	mpz_t num, den;
+	mpz_init(num);
+	mpz_init(den);
+
+	// Extract the numerator and denominator using GMP functions
+	mpq_get_num(num, *gmpq_ptr);  // Get the numerator
+	mpq_get_den(den, *gmpq_ptr);  // Get the denominator
+
+	// check if number is integer
+	if (mpz_divisible_p(num, den)) {
+		mpz_t result;
+		mpz_init(result);
+		mpz_divexact(result, num, den);  // Exact division, guaranteed no remainder
+		to_return = mpz_get_str(nullptr, 10, result);  // Convert result to string
+		mpz_clear(result);
 	} else {
-		return value.numerator().to_double() / value.denominator().to_double();
+		to_return = mpz_get_str(nullptr, 10, num) + string("/") + mpz_get_str(nullptr, 10, den);
 	}
-}
 
-// Function to turn a rational to fraction as a string
-string to_fraction_string(const CGAL::Gmpq& rational) {
-	ostringstream oss;
-	oss << rational.numerator() << "/" << rational.denominator();
-	return oss.str();
-}
+	// Clear GMP integers
+	mpz_clear(num);
+	mpz_clear(den);
 
-// Function to check if given value is integer
-bool is_integer(const CGAL::Gmpq& value) {
-	return value.numerator() % value.denominator() == 0;
-}
-
-// Function to determine the format of steiner point(fraction/integer)
-string format_value(const CGAL::Gmpq& value) {
-	if (is_integer(value)) {
-		return to_string(gmpq_to_int(value));
-	} else {
-		return to_fraction_string(value); // fraction
-	}
-}
+	return to_return;
+} 
 
 // Function to create output.json
-void export_to_json(vector<Point_2>& points, const string& filename, json::string& instance_uid) {
+void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices) {
 	json::object json_output;
-	json::array steiner_points_x, steiner_points_y;
+	json::array steiner_points_x, steiner_points_y, edge_array;
+	vector<pair<int, int>> edges;
 
 	for (const auto& point : points) {
-		// Convert coordinates to rational numbers
-		CGAL::Gmpq x_rational(CGAL::to_double(point.x()));
-		CGAL::Gmpq y_rational(CGAL::to_double(point.y()));
 
 		// Here we use emplace_back instead of push_back so we won't have
 		// to create the object before inserting it in the array
-		steiner_points_x.emplace_back(format_value(x_rational));
-		steiner_points_y.emplace_back(format_value(y_rational));
+		steiner_points_x.emplace_back(rational_to_string(point.x()));
+		steiner_points_y.emplace_back(rational_to_string(point.y()));
 	}
+
+	for (auto edge = cdt.edges_begin(); edge != cdt.edges_end(); ++edge) {
+		Vertex_handle v1 = edge->first->vertex(cdt.cw(edge->second));
+		Vertex_handle v2 = edge->first->vertex(cdt.ccw(edge->second));
+
+		int index1 = vertex_indices.at(v1);
+		int index2 = vertex_indices.at(v2);
+
+		edges.emplace_back(index1, index2);
+	}
+
+	// Convert each edge pair to a JSON array and add it to the edge_array
+	for (const auto& edge : edges) {
+		json::array edge_pair = {edge.first, edge.second};
+		edge_array.push_back(edge_pair);
+    }
 
 	json_output["content_type"] = "CG_SHOP_2025_Solution";
 	json_output["instance_uid"] = instance_uid;
 	json_output["steiner_points_x"] = steiner_points_x;
 	json_output["steiner_points_y"] = steiner_points_y;
-	// json_output["edges"] = edges;
+	json_output["edges"] = edge_array;
 
 	ofstream file(filename);
 	file << json::serialize(json_output);
@@ -163,7 +189,7 @@ void remove_faces_outside_boundary(vector<CDT::Face_handle>& face_vector, const 
 }
 
 // Function to insert a point on the edge opposite to the obtuse angle
-void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
+Point insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 	// face_handles vector will store faces inside given boundary
 	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
@@ -184,11 +210,11 @@ void insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
 
             // Insert the midpoint into the triangulation
             cdt.insert(midpoint);
-			steiner.push_back(midpoint);
             cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
-            return;
+            return midpoint;
         }
     }
+	return (Point)0;
 }
 
 // Function to compute the foot of the altitude from point A onto the line BC
@@ -209,7 +235,7 @@ Point foot_of_altitude(const Point& A, const Point& B, const Point& C) {
 }
 
 // Function to insert the foot of the altitude from the obtuse angle to the opposite side
-void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
+Point insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 
 	// face_handles vector will store faces inside given boundary
 	vector<Face_handle> face_handles;
@@ -233,15 +259,15 @@ void insert_foot_of_altitude(CDT& cdt, const Polygon_2& polygon) {
 
             // Insert the foot of the altitude into the triangulation
             cdt.insert(foot);
-			steiner.push_back(foot);
             cout << "Inserted foot of altitude at (" << foot.x() << ", " << foot.y() << ") to break up obtuse triangle.\n";
-            return;
+            return foot;
         }
     }
+	return (Point)0;
 }
 
 // Function to insert the circumcenter or centroid of the face with an obtuse angle
-void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
+Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
 	// face_handles vector will store faces inside given boundary
 	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
@@ -261,29 +287,29 @@ void insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
                 // If the circumcenter is inside or on the boundary, insert it
                 cdt.insert(circumcenter);
-				steiner.push_back(circumcenter);
+				return circumcenter;
                 //cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
             } else {
                 // Otherwise, compute and insert the centroid
                 Point centroid = get_centroid(f);
                 cdt.insert(centroid);
-				steiner.push_back(centroid);
+				return centroid;
                 //cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
             }
-            return;
         }
     }
+	return (Point)0;
 }
 
 // Function to apply a given sequence of insertions to the triangulation
-void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence) {
+void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence, vector<Point_2>& steiner) {
     for (const string& step : sequence) {
         if (step == "insert_circumcenter") {
-            insert_circumcenter(cdt, polygon);
+			steiner.emplace_back(insert_circumcenter(cdt, polygon));
         } else if (step == "insert_midpoint") {
-            insert_midpoint(cdt, polygon);
+        	steiner.emplace_back(insert_midpoint(cdt, polygon));
         } else if (step == "insert_foot_of_altitude") {
-            insert_foot_of_altitude(cdt, polygon);
+            steiner.emplace_back(insert_foot_of_altitude(cdt, polygon));
         }
         cout << "Applied " << step << "\n";
     }
@@ -334,7 +360,7 @@ void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_d
     cdt = backup;  // Restore triangulation
 }
 
-void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon) {
+void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon, vector<Point_2>& steiner) {
     int min_obtuse_angles = numeric_limits<int>::max();
     vector<string> best_sequence;
     vector<string> current_sequence;
@@ -351,11 +377,12 @@ void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& 
         for (const string& step : best_sequence) {
             cout << step << " ";
         }
-        apply_best_sequence(cdt, polygon, best_sequence);
+        apply_best_sequence(cdt, polygon, best_sequence, steiner);
         cout << "\n";
     } else {
         cout << "Could not reduce obtuse angles with given Steiner points.\n";
     }
+
 }
 
 int main(int argc, char* argv[])
@@ -396,6 +423,7 @@ int main(int argc, char* argv[])
 
     // Initialize the Constrained Delaunay Triangulation (CDT)
     CDT cdt;
+	vector<Point_2> steiner;
 
     // Insert points into the triangulation 
     for (const Point& p : points) {
@@ -428,7 +456,7 @@ int main(int argc, char* argv[])
 
     // int count = 0;
     cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
-    brute_force_steiner_insertion(cdt, steiner_points, polygon);
+    brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
 
     if (is_obtuse_triangulation(cdt)) {
         cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -439,7 +467,9 @@ int main(int argc, char* argv[])
     // cout << "Steiner count: " << count << '\n';
     cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
 
-	export_to_json(steiner, "output.json", instance_uid);
+	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
+
+	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices);
 
     // Draw the triangulation using CGAL's draw function
     CGAL::draw(cdt);
