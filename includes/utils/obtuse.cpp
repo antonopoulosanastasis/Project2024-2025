@@ -1,7 +1,5 @@
-#include "custom_cdt.h"
 #include "obtuse.h"
 #include "definitions.h"
-
 
 // Function to count obtuse angles of a triangulation 
 int count_obtuse_angles(CDT cdt) {

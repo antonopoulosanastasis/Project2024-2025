@@ -9,13 +9,15 @@
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
 #include <map>					// Necessary for vertex indices
-
 #include "obtuse.h"
+#include "circumcenter.h"
+#include "projection.h"
+#include "midpoint.h"
 #include "definitions.h"
+#include "brute_force.h"
 
 namespace json = boost::json;
 using namespace std;
-
 
 // Function to deserialize points from JSON arrays
 vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
@@ -123,28 +125,6 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	file << json::serialize(json_output);
 }
 
-// Function to get the circumcenter of a face (triangle)
-Point get_circumcenter(Face_handle face) {
-	// Get the vertices of the triangle
-	Point p1 = face->vertex(0)->point();
-	Point p2 = face->vertex(1)->point();
-	Point p3 = face->vertex(2)->point();
-
-	// CGAL provides a built-in function to compute the circumcenter
-	return CGAL::circumcenter(p1, p2, p3);
-}
-
-// Function to get the centroid of a face (triangle)
-Point get_centroid(Face_handle face) {
-	// Get the vertices of the triangle
-	Point p1 = face->vertex(0)->point();
-	Point p2 = face->vertex(1)->point();
-	Point p3 = face->vertex(2)->point();
-
-	// CGAL provides a built-in function to compute the centroid
-	return CGAL::centroid(p1, p2, p3);
-}
-
 // Function to flip the edge opposite to the obtuse angle in a face
 void flip_obtuse_edges(CDT& cdt) {
     for (Face_handle f : cdt.finite_face_handles()) {
@@ -164,210 +144,6 @@ void flip_obtuse_edges(CDT& cdt) {
             }
         }
     }
-}
-
-// Function to check if the point is outside the polygon
-bool is_point_outside_polygon(const Polygon_2& polygon, const Point_2& point) {
-    CGAL::Bounded_side result = CGAL::bounded_side_2(polygon.vertices_begin(), polygon.vertices_end(), point, K());
-
-    // Return true if the point is outside the polygon
-    return (result == CGAL::ON_UNBOUNDED_SIDE);
-}
-
-// Function to remove faces outside boundary from a face vector
-void remove_faces_outside_boundary(vector<CDT::Face_handle>& face_vector, const Polygon_2& boundary) {
-	vector<CDT::Face_handle>::iterator it = face_vector.begin();
-
-	// Iterate through the vector and remove faces based on the condition
-	while (it != face_vector.end()) {
-		if (is_point_outside_polygon(boundary, get_centroid(*it)) ) {
-			it = face_vector.erase(it); // Remove face and get new iterator
-		} else {
-			++it; // Move to the next face
-		}
-	}
-}
-
-// Function to insert a point on the edge opposite to the obtuse angle
-Point insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
-	// face_handles vector will store faces inside given boundary
-	vector<Face_handle> face_handles;
-	for (Face_handle face : cdt.finite_face_handles()) {
-		face_handles.push_back(face);
-	}
-	remove_faces_outside_boundary(face_handles, boundary);
-
-    // Iterate over each face and check for obtuse angles
-    for (Face_handle f : face_handles) {
-        int obtuse_index = find_obtuse_angle_index(f);
-        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
-            // Get the two vertices opposite the obtuse angle
-            Point opposite_p1 = f->vertex((obtuse_index + 1) % 3)->point();
-            Point opposite_p2 = f->vertex((obtuse_index + 2) % 3)->point();
-
-            // Compute the midpoint of the edge opposite the obtuse angle
-            Point midpoint = CGAL::midpoint(opposite_p1, opposite_p2);
-
-            // Insert the midpoint into the triangulation
-            cdt.insert(midpoint);
-            cout << "Inserted point at (" << midpoint.x() << ", " << midpoint.y() << ") to break up obtuse triangle.\n";
-            return midpoint;
-        }
-    }
-	return (Point)0;
-}
-
-// Function to insert steiner point using
-// the projection of the obtuse angle to the opposite side
-Point insert_projection(CDT& cdt, const Polygon_2& polygon) {
-
-	// face_handles vector will store faces inside given boundary
-	vector<Face_handle> face_handles;
-	for (Face_handle face : cdt.finite_face_handles()) {
-		face_handles.push_back(face);
-	}
-	remove_faces_outside_boundary(face_handles, polygon);
-	// Iterate over each face and check for obtuse angles
-	for (Face_handle f : face_handles) {
-		int obtuse_index = find_obtuse_angle_index(f); 
-		if (obtuse_index != -1) {  // If there is an obtuse angle in the face
-			// Get the vertex at the obtuse angle
-			Point obtuse_vertex = f->vertex(obtuse_index)->point();
-
-			// Get the two vertices opposite the obtuse angle
-			Point opposite_p1 = f->vertex((obtuse_index + 1) % 3)->point();
-			Point opposite_p2 = f->vertex((obtuse_index + 2) % 3)->point();
-
-			// Create line from opposite points
-			// and get the projection
-			Line line(opposite_p1, opposite_p2);
-			Point projection = line.projection(obtuse_vertex);
-
-			cdt.insert(projection);
-
-			return projection;
-		}
-	}
-	return (Point)0;
-}
-
-// Function to insert the circumcenter or centroid of the face with an obtuse angle
-Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
-	// face_handles vector will store faces inside given boundary
-	vector<Face_handle> face_handles;
-	for (Face_handle face : cdt.finite_face_handles()) {
-		face_handles.push_back(face);
-	}
-	remove_faces_outside_boundary(face_handles, polygon);
-    // Iterate over each face and check for obtuse angles
-    for (Face_handle f : face_handles) {
-        int obtuse_index = find_obtuse_angle_index(f);
-        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
-            // Compute the circumcenter of the triangle
-            Point circumcenter = get_circumcenter(f);
-
-            // Check if the circumcenter is inside or on the boundary of the polygon
-            CGAL::Bounded_side circumcenter_location = CGAL::bounded_side_2(polygon.vertices_begin(), polygon.vertices_end(), circumcenter, K());
-
-            if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
-                // If the circumcenter is inside or on the boundary, insert it
-                cdt.insert(circumcenter);
-				return circumcenter;
-                //cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
-            } else {
-                // Otherwise, compute and insert the centroid
-                Point centroid = get_centroid(f);
-                cdt.insert(centroid);
-				return centroid;
-                //cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
-            }
-        }
-    }
-	return (Point)0;
-}
-
-// Function to apply a given sequence of insertions to the triangulation
-void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence, vector<Point_2>& steiner) {
-    for (const string& step : sequence) {
-        if (step == "insert_circumcenter") {
-			steiner.emplace_back(insert_circumcenter(cdt, polygon));
-        } else if (step == "insert_midpoint") {
-        	steiner.emplace_back(insert_midpoint(cdt, polygon));
-        } else if (step == "insert_projection") {
-            steiner.emplace_back(insert_projection(cdt, polygon));
-        }
-        cout << "Applied " << step << "\n";
-    }
-}
-
-void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_depth, 
-                      int& min_obtuse_angles, vector<string>& best_sequence, 
-                      vector<string>& current_sequence, 
-                      int& min_steiner_points) {
-    
-    int current_obtuse_angles = count_obtuse_angles(cdt);  // Count obtuse angles in the current triangulation
-    
-    // Check if the current triangulation is better
-    if (current_obtuse_angles < min_obtuse_angles || 
-        (current_obtuse_angles == min_obtuse_angles && current_depth < min_steiner_points)) {
-        
-        min_obtuse_angles = current_obtuse_angles;
-        min_steiner_points = current_depth;
-        best_sequence = current_sequence; // Update the best sequence
-    }
-
-    if (current_depth >= max_depth) {
-        return; // Stop recursion if max depth is reached
-    }
-
-    // Backup the current triangulation
-    CDT backup = cdt;
-
-    // Try inserting the circumcenter
-    insert_circumcenter(cdt, polygon);
-    current_sequence.push_back("insert_circumcenter");
-    try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
-    current_sequence.pop_back();
-    cdt = backup;  // Restore triangulation
-
-    // Try inserting the midpoint
-    insert_midpoint(cdt, polygon);
-    current_sequence.push_back("insert_midpoint");
-    try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
-    current_sequence.pop_back();
-    cdt = backup;  // Restore triangulation
-
-    // Try inserting projection
-    insert_projection(cdt, polygon);
-    current_sequence.push_back("insert_projection");
-    try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
-    current_sequence.pop_back();
-    cdt = backup;  // Restore triangulation
-}
-
-void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon, vector<Point_2>& steiner) {
-    int min_obtuse_angles = numeric_limits<int>::max();
-    vector<string> best_sequence;
-    vector<string> current_sequence;
-    int min_steiner_points = max_steiner_points; // Reset for the minimum Steiner points used
-
-    // Start recursive backtracking
-    try_combinations(cdt, polygon, max_steiner_points, 0, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
-
-    if (!best_sequence.empty()) {
-        // If a triangulation was found
-        cout << "Minimum obtuse angles: " << min_obtuse_angles << "\n";
-        cout << "Steiner points used: " << min_steiner_points << "\n";
-        cout << "Best sequence of insertions for minimum obtuse triangulation: ";
-        for (const string& step : best_sequence) {
-            cout << step << " ";
-        }
-        apply_best_sequence(cdt, polygon, best_sequence, steiner);
-        cout << "\n";
-    } else {
-        cout << "Could not reduce obtuse angles with given Steiner points.\n";
-    }
-
 }
 
 int main(int argc, char* argv[])
@@ -449,7 +225,6 @@ int main(int argc, char* argv[])
         cout << "All triangles in the triangulation are acute or right-angled.\n";
     }
 
-    // cout << "Steiner count: " << count << '\n';
     cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
