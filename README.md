@@ -49,7 +49,7 @@ make
 
 ./test input.json <steiner_count>
 
-όπου το steiner_count είναι ο μέγιστος αριθμός των steiner σημείων που μπορούν να προστεθούν στην τριγωνοποίηση μέσω της brute_force(). Επειδή η πολυπλοκότητα της brute_force() είναι εκθετική, πρέπει το steiner_count να έχει μικρή τιμή (max 13) αλλά για αυτά θα βρει τη βέλτιστη λύση, αν υπάρχει. 
+όπου το steiner_count είναι ο μέγιστος αριθμός των steiner σημείων που μπορούν να προστεθούν στην τριγωνοποίηση μέσω της brute_force(). Επειδή η πολυπλοκότητα της brute_force() είναι εκθετική, πρέπει το steiner_count να έχει μικρή τιμή (max 11) αλλά για αυτά θα βρει τη βέλτιστη λύση, αν υπάρχει. 
 
 Περιγραφή της υλοποίησης:
 Αρχικά η υλοποίηση ξεκινάει με Constrained Delaunay Triangulation (CDT). Έχουμε υλοποιήσει μια συνάρτηση brute_force_steiner_insertion() η οποία ελέγχει ποια θα είναι η βέλτιστη λύση ελέγχοντας ποια από τις υλοποιήσεις εισαγωγής steiner point θα έχει τα λιγότερα insertions. Αφού ελέγξει όλες τις υλοποιήσεις και βρει τη βέλτιστη, τότε εφαρμόζει τη συνάρτηση apply_best_sequence() η οποία προσθέτει τα steiner points χρησιμοποιώντας τη βέλτιστη υλοποίηση. Για την εισαγωγή των steiner points έχουν υλοποιηθεί οι εξής μέθοδοι:
@@ -67,3 +67,33 @@ make
 5. edges: Μια λίστα από ακμές, όπου κάθε ακμή αναπαρίσταται ως ένα ζεύγος ακεραίων που αντιστοιχούν σε δείκτες σημείων.
 
 Για τα edges χρησιμοποιήθηκε map το οποίο αντιστοιχεί τα vertices(κορυφές) με ένα δείκτη σημείου.
+
+Στον φάκελο instances συμπεριλαμβάνονται κάποια από τα test instances που δόθηκαν και ο κώδικας συγκλίνει/μειώνει σημαντικά τις αμβλείες.
+
+Εντολή: ./test instances/<instance.json> <number of steiner points>
+
+instances που συγκλίνει/μειώνει:
+
+instance_2.json συγκλίνει (6 steiner). 
+
+instance_3.json συγκλίνει. (2 steiner).
+
+instance_4.json μειώνει από 10 αμβλείες σε 1 (9 steiner). 
+
+instance_5.json μειώνει από 10 αμβλείες σε 4 (9 steiner). 
+
+instance_6.json μειώνει από 8 αμβλείες σε 3 (6 steiner). 
+
+instance_7.json συγκλίνει (4 steiner). 
+
+instance_test_4.json συγκλίνει (1 steiner).
+
+instance_test_5.json συγκλίνει (3 steiner).
+
+instance_test_6.json συγκλίνει (6 steiner).
+
+instance_test_7.json συγκλίνει (8 steiner)
+
+instance_test_8.json μειώνει από 5 αμβλείες σε 2 (5 steiner).
+
+instance_test_9.json μειώνει από 7 αμβλείες σε 1 (8 steiner).
