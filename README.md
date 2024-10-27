@@ -13,11 +13,27 @@ root/
 │    ├── CMakeLists.txt 
 │    ├── custom_cdt.h 
 │    ├── definitions.h 
+│    ├── midpoint.cpp
+│    ├── midpoint.h
+│    ├── projection.cpp
+│    ├── projection.h
+│    ├── circumcenter.cpp
+│    ├── circumcenter.h
+│    ├── brute_force.cpp
+│    ├── brute_force.h
 │    ├── obtuse.cpp 
 │    └── obtuse.h
 ├── CMakeLists.txt
 ├── README.md
 └── test.cpp
+
+Κώδικας στα αρχεία:
+->Τα header files έχουν όλα declarations/definitions συναρτήσεων με το εκάστοτε όνομα. Για παράδειγμα το obtuse.h περιέχει declarations συναρτήσεων για έλεγχο obtuse γωνιών/τριγώνων.
+->Τα cpp files έχουν τα implementations των αντίστοιχων συναρτήσεων.
+
+Άρα συνδυαστικά, η μέθοδος midpoint έχει το declaration της στο midpoint.h και την υλοποίηση στο midpoint.cpp και ούτω καθεξής.
+
+Μόνη εξαίρεση αποτελεί το αρχείο definitions.h που έχει όλα τα typedef που χρησιμοποιούνται καθώς και όλες τις βιβλιοθήκες που χρησιμοποιούνται παντού.
 
 Ο κώδικας των υλοποιήσεων μαζί με την main() βρίσκονται στο test.cpp. Στο directory includes/utils υπάρχουν όλα τα απαραίτητα declarations/implementations για συναρτήσεις που χρησιμοποιούνται από το test.cpp. Με χρήση της CMake δημιουργείται το library Utils που χρησιμοποιείται στο τελικό εκτελέσιμο.
 
