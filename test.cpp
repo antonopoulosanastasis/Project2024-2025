@@ -149,89 +149,94 @@ void flip_obtuse_edges(CDT& cdt) {
 int main(int argc, char* argv[])
 {
 
-    // Check if filename is provided as an argument
-    if (argc < 3) {
-        cerr << "Error: No input filename provided.\n";
-        cerr << "Usage: " << argv[0] << " <input_filename>\n";
-        return 1;
-    }
+	// Check if filename is provided as an argument
+	if (argc < 3) {
+		cerr << "Error: No input filename provided.\n";
+		cerr << "Usage: " << argv[0] << " <input_filename>\n";
+		return 1;
+	}
 
-    // Get the filename from the command-line argument
-    string filename = argv[1];
-    int steiner_points = stoi(argv[2]);
-    // Read the file
-    ifstream in_file(filename);
-    if (!in_file) {
-        cerr << "Error: Could not open file " << filename << endl;
-        return 1;
-    }
+	// Get the filename from the command-line argument
+	string filename = argv[1];
+	int steiner_points = stoi(argv[2]);
+	// Read the file
+	ifstream in_file(filename);
+	if (!in_file) {
+		cerr << "Error: Could not open file " << filename << endl;
+		return 1;
+	}
 
-    stringstream buffer;
-    buffer << in_file.rdbuf();
-    json::value json_value = json::parse(buffer.str());
+	stringstream buffer;
+	buffer << in_file.rdbuf();
+	json::value json_value = json::parse(buffer.str());
 
-    // Extract data from the JSON
-    json::object json_data = json_value.as_object();
+	// Extract data from the JSON
+	json::object json_data = json_value.as_object();
 	json::string instance_uid = json_data["instance_uid"].as_string();
-    json::array points_x = json_data["points_x"].as_array();
-    json::array points_y = json_data["points_y"].as_array();
-    json::array region_boundary = json_data["region_boundary"].as_array();
-    json::array additional_constraints = json_data["additional_constraints"].as_array(); 
+	json::array points_x = json_data["points_x"].as_array();
+	json::array points_y = json_data["points_y"].as_array();
+	json::array region_boundary = json_data["region_boundary"].as_array();
+	json::array additional_constraints = json_data["additional_constraints"].as_array(); 
 
-    // Deserialize points and constraints
-    vector<Point> points = deserialize_points(points_x, points_y);
-    vector<pair<int, int>> constraints = deserialize_constraints(additional_constraints);
+	// Deserialize points and constraints
+	vector<Point> points = deserialize_points(points_x, points_y);
+	vector<pair<int, int>> constraints = deserialize_constraints(additional_constraints);
 
-    // Initialize the Constrained Delaunay Triangulation (CDT)
-    CDT cdt;
+	// Initialize the Constrained Delaunay Triangulation (CDT)
+	CDT cdt;
 	vector<Point_2> steiner;
 
-    // Insert points into the triangulation 
-    for (const Point& p : points) {
-        cdt.insert(p);
-    }
+	// Construct the polygon using the region_boundary indices
+	Polygon_2 polygon;
+	for (const auto& idx : region_boundary) {
+		polygon.push_back(points[idx.as_int64()]);
+	}
 
-    // Insert constrained edges based on the provided indices
-    for (const auto& constraint : constraints) {
-        cdt.insert_constraint(points[constraint.first], points[constraint.second]);
-    }
+	for (size_t i = 0; i < polygon.size(); ++i) {
+		cdt.insert_constraint(polygon[i], polygon[(i + 1) % polygon.size()]);
+	}
+
+	// Insert points into the triangulation 
+	for (const Point& p : points) {
+		cdt.insert(p);
+	}
+
+	// Insert constrained edges based on the provided indices
+	for (const auto& constraint : constraints) {
+		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
+	}
     
-    // Construct the polygon using the region_boundary indices
-    Polygon_2 polygon;
-    for (const auto& idx : region_boundary) {
-        polygon.push_back(points[idx.as_int64()]);
-    }
 
-    // You now have a polygon built from the region_boundary!
-    // For example, print the vertices of the polygon:
-    cout << "Polygon vertices: " << endl;
-    for (const auto& vertex : polygon.vertices()) {
-        cout << vertex << endl;
-    }
+	// You now have a polygon built from the region_boundary!
+	// For example, print the vertices of the polygon:
+	cout << "Polygon vertices: " << endl;
+	for (const auto& vertex : polygon.vertices()) {
+		cout << vertex << endl;
+	}
 
-    if (is_obtuse_triangulation(cdt)) {
-        cout << "The triangulation contains at least one obtuse triangle.\n";
-    } else {
-        cout << "All triangles in the triangulation are acute or right-angled.\n";
-    }
+	if (is_obtuse_triangulation(cdt)) {
+		cout << "The triangulation contains at least one obtuse triangle.\n";
+	} else {
+		cout << "All triangles in the triangulation are acute or right-angled.\n";
+	}
 
-    // int count = 0;
-    cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
-    brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+	// int count = 0;
+	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+	brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
 
-    if (is_obtuse_triangulation(cdt)) {
-        cout << "The triangulation contains at least one obtuse triangle.\n";
-    } else {
-        cout << "All triangles in the triangulation are acute or right-angled.\n";
-    }
+	if (is_obtuse_triangulation(cdt)) {
+		cout << "The triangulation contains at least one obtuse triangle.\n";
+	} else {
+		cout << "All triangles in the triangulation are acute or right-angled.\n";
+	}
 
-    cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
 	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices);
 
-    // Draw the triangulation using CGAL's draw function
-    CGAL::draw(cdt);
-    return 0;
+	// Draw the triangulation using CGAL's draw function
+	CGAL::draw(cdt);
+	return 0;
 }
