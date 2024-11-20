@@ -9,12 +9,14 @@
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
 #include <map>					// Necessary for vertex indices
+
 #include "obtuse.h"
 #include "circumcenter.h"
 #include "projection.h"
 #include "midpoint.h"
 #include "definitions.h"
 #include "brute_force.h"
+#include "local_search.h"
 
 namespace json = boost::json;
 using namespace std;
@@ -222,7 +224,8 @@ int main(int argc, char* argv[])
 
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
-	brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+	local_search_optimization(cdt, polygon, 100000, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -235,6 +238,8 @@ int main(int argc, char* argv[])
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
 	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices);
+
+	cout << "steiner points added: " << steiner.size() << endl;
 
 	// Draw the triangulation using CGAL's draw function
 	CGAL::draw(cdt);
