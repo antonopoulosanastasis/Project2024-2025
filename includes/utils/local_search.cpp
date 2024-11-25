@@ -20,9 +20,6 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 
 		Point final_point;
 		for (const auto& steiner_point : steiner_points) {
-			if (steiner_point == Point()) 
-				continue; 
-				
 			CDT temp_triangulation = cdt;
 			temp_triangulation.insert(steiner_point);
 
@@ -38,8 +35,6 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 		if (improved){
 			cdt = best_triangulation;
 			steiner.emplace_back(final_point);
-		} else {
-			break; // No further improvements
 		}
 
 		iterations++;
