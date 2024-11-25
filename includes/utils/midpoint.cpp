@@ -28,5 +28,5 @@ Point insert_midpoint(CDT& cdt, const Polygon_2& boundary) {
             return midpoint;
         }
     }
-	return (Point)0;
+	return Point();
 }

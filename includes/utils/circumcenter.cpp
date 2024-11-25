@@ -77,5 +77,5 @@ Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             }
         }
     }
-	return (Point)0;
+	return Point();
 }

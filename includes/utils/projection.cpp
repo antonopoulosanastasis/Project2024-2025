@@ -33,5 +33,5 @@ Point insert_projection(CDT& cdt, const Polygon_2& polygon) {
 			return projection;
 		}
 	}
-	return (Point)0;
+	return Point();
 }
