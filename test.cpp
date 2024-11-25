@@ -225,7 +225,7 @@ int main(int argc, char* argv[])
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
-	local_search_optimization(cdt, polygon, 100000, steiner);
+	local_search_optimization(cdt, polygon, 100, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
