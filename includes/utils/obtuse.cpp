@@ -2,9 +2,14 @@
 #include "definitions.h"
 
 // Function to count obtuse angles of a triangulation 
-int count_obtuse_angles(CDT cdt) {
+int count_obtuse_angles(CDT cdt, Polygon_2& polygon) {
+	std::vector<Face_handle> face_handles;
+	for (Face_handle face : cdt.finite_face_handles()) {
+		face_handles.push_back(face);
+	}
+	remove_faces_outside_boundary(face_handles, polygon);
     int count = 0;
-    for (Face_handle f : cdt.finite_face_handles()) {
+    for (Face_handle f : face_handles) {
         if (has_obtuse_angle(f)) {
             count++; // Found a face with an obtuse angle, exit early
         }
