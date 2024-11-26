@@ -16,7 +16,7 @@ void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& se
 
 void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_depth, int& min_obtuse_angles, vector<string>& best_sequence, vector<string>& current_sequence, int& min_steiner_points) {
     
-    int current_obtuse_angles = count_obtuse_angles(cdt);  // Count obtuse angles in the current triangulation
+    int current_obtuse_angles = count_obtuse_angles(cdt, polygon);  // Count obtuse angles in the current triangulation
     
     // Check if the current triangulation is better
     if (current_obtuse_angles < min_obtuse_angles || 

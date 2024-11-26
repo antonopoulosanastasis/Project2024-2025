@@ -4,7 +4,7 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 	int iterations = 0;
 	int obtuse_count;
 
-	while ( (obtuse_count = count_obtuse_angles(cdt)) && iterations < max_iterations) {
+	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
 		bool improved = false;
 		CDT cdt_circumcenter = cdt;
 		CDT cdt_projection = cdt;
@@ -23,7 +23,7 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 			CDT temp_triangulation = cdt;
 			temp_triangulation.insert(steiner_point);
 
-			int new_obtuse_count = count_obtuse_angles(temp_triangulation);
+			int new_obtuse_count = count_obtuse_angles(temp_triangulation, polygon);
 			if (new_obtuse_count <= best_obtuse_count) {
 				best_triangulation = temp_triangulation;
 				best_obtuse_count = new_obtuse_count;

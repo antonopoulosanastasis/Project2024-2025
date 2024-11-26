@@ -17,6 +17,7 @@
 #include "definitions.h"
 #include "brute_force.h"
 #include "local_search.h"
+#include "simulated_annealing.h"
 
 namespace json = boost::json;
 using namespace std;
@@ -223,9 +224,10 @@ int main(int argc, char* argv[])
 	}
 
 	// int count = 0;
-	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
-	local_search_optimization(cdt, polygon, 1000, steiner);
+	// local_search_optimization(cdt, polygon, 1000, steiner);
+	simulated_annealing_optimization(cdt, polygon, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -233,7 +235,7 @@ int main(int argc, char* argv[])
 		cout << "All triangles in the triangulation are acute or right-angled.\n";
 	}
 
-	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt) << '\n';
+	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
