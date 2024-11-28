@@ -1,5 +1,6 @@
 #include "obtuse.h"
 #include "definitions.h"
+#include "circumcenter.h"	// remove_faces_outside_boundary()
 
 // Function to count obtuse angles of a triangulation 
 int count_obtuse_angles(CDT cdt, Polygon_2& polygon) {
