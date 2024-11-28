@@ -20,6 +20,6 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 double compute_energy(CDT& cdt, const Polygon_2& polygon, int steiner_count);
 
 // Function to pick steiner point method based on given number <option>
-Point choose_steiner_point(CDT cdt, const Polygon_2& polygon, int option);
+Point choose_steiner_point(CDT& cdt, const Polygon_2& polygon, int option);
 
 #endif // SIMULATED_ANNEALING_H
