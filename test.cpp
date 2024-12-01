@@ -86,7 +86,7 @@ string rational_to_string(const K::FT& coord) {
 } 
 
 // Function to create output.json
-void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices) {
+void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices, const Polygon_2 polygon) {
 	json::object json_output;
 	json::array steiner_points_x, steiner_points_y, edge_array;
 	vector<pair<int, int>> edges;
@@ -106,7 +106,13 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 		int index1 = vertex_indices.at(v1);
 		int index2 = vertex_indices.at(v2);
 
-		edges.emplace_back(index1, index2);
+		// Calculate the midpoint of the edge
+		Point_2 midpoint = CGAL::midpoint(v1->point(), v2->point());
+		if(!is_point_outside_polygon(polygon, midpoint)) {
+			edges.emplace_back(index1, index2);
+		}
+
+		
 	}
 
 	// Convert each edge pair to a JSON array and add it to the edge_array
@@ -222,9 +228,9 @@ int main(int argc, char* argv[])
 
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
-	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+	brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
 	// local_search_optimization(cdt, polygon, 1000, steiner);
-	simulated_annealing_optimization(cdt, polygon, steiner);
+	// simulated_annealing_optimization(cdt, polygon, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -236,7 +242,7 @@ int main(int argc, char* argv[])
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
-	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices);
+	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices, polygon);
 
 	cout << "steiner points added: " << steiner.size() << endl;
 
