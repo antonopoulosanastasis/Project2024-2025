@@ -9,7 +9,9 @@ void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& se
         	steiner.emplace_back(insert_midpoint(cdt, polygon));
         } else if (step == "insert_projection") {
             steiner.emplace_back(insert_projection(cdt, polygon));
-        }
+        } else if(step == "insert_centroid") {
+			steiner.emplace_back(insert_centroid(cdt, polygon));
+		}
         cout << "Applied " << step << "\n";
     }
 }
@@ -51,6 +53,13 @@ void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_d
     // Try inserting projection
     insert_projection(cdt, polygon);
     current_sequence.push_back("insert_projection");
+    try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
+    current_sequence.pop_back();
+    cdt = backup;  // Restore triangulation
+
+	// Try inserting centroid
+    insert_centroid(cdt, polygon);
+    current_sequence.push_back("insert_centroid");
     try_combinations(cdt, polygon, max_depth, current_depth + 1, min_obtuse_angles, best_sequence, current_sequence, min_steiner_points);
     current_sequence.pop_back();
     cdt = backup;  // Restore triangulation

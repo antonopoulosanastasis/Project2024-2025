@@ -1,5 +1,6 @@
 #include "circumcenter.h"
 #include "obtuse.h"
+#include "centroid.h"
 
 // Function to get the circumcenter of a face (triangle)
 Point get_circumcenter(Face_handle face) {
@@ -10,17 +11,6 @@ Point get_circumcenter(Face_handle face) {
 
 	// CGAL provides a built-in function to compute the circumcenter
 	return CGAL::circumcenter(p1, p2, p3);
-}
-
-// Function to get the centroid of a face (triangle)
-Point get_centroid(Face_handle face) {
-	// Get the vertices of the triangle
-	Point p1 = face->vertex(0)->point();
-	Point p2 = face->vertex(1)->point();
-	Point p3 = face->vertex(2)->point();
-
-	// CGAL provides a built-in function to compute the centroid
-	return CGAL::centroid(p1, p2, p3);
 }
 
 // Function to check if the point is outside the polygon
@@ -60,16 +50,14 @@ Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
             // Compute the circumcenter of the triangle
             Point circumcenter = get_circumcenter(f);
 
-            // Check if the circumcenter is inside or on the boundary of the polygon
-            CGAL::Bounded_side circumcenter_location = CGAL::bounded_side_2(polygon.vertices_begin(), polygon.vertices_end(), circumcenter, K());
-
-            if (circumcenter_location != CGAL::ON_UNBOUNDED_SIDE) {
+            if (!is_point_outside_polygon(polygon, circumcenter)) {
                 // If the circumcenter is inside or on the boundary, insert it
                 cdt.insert(circumcenter);
 				return circumcenter;
                 //cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
             } else {
-                // Otherwise, compute and insert the centroid
+                // Otherwise, compute and insert the centroid of the CURRENT face
+				// calling insert_centroid() here does not guarantee that THIS face will be picked
                 Point centroid = get_centroid(f);
                 cdt.insert(centroid);
 				return centroid;

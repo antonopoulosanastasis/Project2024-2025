@@ -7,6 +7,7 @@
 #include "midpoint.h"
 #include "projection.h"
 #include "obtuse.h"
+#include "centroid.h"
 
 using namespace std;
 

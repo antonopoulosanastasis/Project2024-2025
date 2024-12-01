@@ -11,9 +11,6 @@
 #include <map>					// Necessary for vertex indices
 
 #include "obtuse.h"
-#include "circumcenter.h"
-#include "projection.h"
-#include "midpoint.h"
 #include "definitions.h"
 #include "brute_force.h"
 #include "local_search.h"
@@ -226,8 +223,8 @@ int main(int argc, char* argv[])
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
-	// local_search_optimization(cdt, polygon, 1000, steiner);
-	simulated_annealing_optimization(cdt, polygon, steiner);
+	local_search_optimization(cdt, polygon, 1000, steiner);
+	// simulated_annealing_optimization(cdt, polygon, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
