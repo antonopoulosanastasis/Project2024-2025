@@ -212,14 +212,6 @@ int main(int argc, char* argv[])
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
     
-
-	// You now have a polygon built from the region_boundary!
-	// For example, print the vertices of the polygon:
-	cout << "Polygon vertices: " << endl;
-	for (const auto& vertex : polygon.vertices()) {
-		cout << vertex << endl;
-	}
-
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
 	} else {
