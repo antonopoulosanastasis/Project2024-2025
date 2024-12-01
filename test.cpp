@@ -21,34 +21,34 @@ using namespace std;
 
 // Function to deserialize points from JSON arrays
 vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
-    vector<Point> points;
-    for (size_t i = 0; i < points_x.size(); ++i) {
-        int x = points_x[i].as_int64();
-        int y = points_y[i].as_int64();
-        points.push_back(Point(x, y));
-    }
-    return points;
+	vector<Point> points;
+	for (size_t i = 0; i < points_x.size(); ++i) {
+		int x = points_x[i].as_int64();
+		int y = points_y[i].as_int64();
+		points.push_back(Point(x, y));
+	}
+	return points;
 }
 
 // Function to deserialize constraints from JSON
 vector<pair<int, int>> deserialize_constraints(const json::array& json_constraints) {
-    vector<pair<int, int>> constraints;
-    for (const auto& json_constraint : json_constraints) {
-        int first = json_constraint.at(0).as_int64();
-        int second = json_constraint.at(1).as_int64();
-        constraints.push_back({first, second});
-    }
-    return constraints;
+	vector<pair<int, int>> constraints;
+	for (const auto& json_constraint : json_constraints) {
+		int first = json_constraint.at(0).as_int64();
+		int second = json_constraint.at(1).as_int64();
+		constraints.push_back({first, second});
+	}
+	return constraints;
 }
 
 // Function to create a map of vertex handles to integer indexes
 map<Vertex_handle, int> create_vertex_indices(const CDT& cdt) {
-    map<Vertex_handle, int> vertex_indices;
-    int index = 0;
-    for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
-        vertex_indices[v] = index++;
-    }
-    return vertex_indices;
+	map<Vertex_handle, int> vertex_indices;
+	int index = 0;
+	for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
+		vertex_indices[v] = index++;
+	}
+	return vertex_indices;
 }
 
 string rational_to_string(const K::FT& coord) {
@@ -113,7 +113,7 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	for (const auto& edge : edges) {
 		json::array edge_pair = {edge.first, edge.second};
 		edge_array.push_back(edge_pair);
-    }
+	}
 
 	json_output["content_type"] = "CG_SHOP_2025_Solution";
 	json_output["instance_uid"] = instance_uid;
@@ -223,8 +223,8 @@ int main(int argc, char* argv[])
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
-	local_search_optimization(cdt, polygon, 1000, steiner);
-	// simulated_annealing_optimization(cdt, polygon, steiner);
+	// local_search_optimization(cdt, polygon, 1000, steiner);
+	simulated_annealing_optimization(cdt, polygon, steiner);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";

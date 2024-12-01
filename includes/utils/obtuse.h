@@ -3,6 +3,8 @@
 
 #include "definitions.h"
 
+using namespace std;
+
 // Function to count obtuse angles of a triangulation 
 int count_obtuse_angles(CDT cdt, Polygon_2& polygon);
 

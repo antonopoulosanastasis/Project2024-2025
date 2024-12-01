@@ -20,10 +20,10 @@ Point insert_centroid(CDT& cdt, const Polygon_2& polygon) {
 		face_handles.push_back(face);
 	}
 	remove_faces_outside_boundary(face_handles, polygon);
-    // Iterate over each face and check for obtuse angles
-    for (Face_handle f : face_handles) {
+	// Iterate over each face and check for obtuse angles
+	for (Face_handle f : face_handles) {
 		int obtuse_index = find_obtuse_angle_index(f);
-        if (obtuse_index != -1) {	// If there is an obtuse angle in the face
+		if (obtuse_index != -1) {	// If there is an obtuse angle in the face
 			// Calculate centroid
 			Point centroid = get_centroid(f);
 

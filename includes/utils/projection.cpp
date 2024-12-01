@@ -7,7 +7,7 @@
 Point insert_projection(CDT& cdt, const Polygon_2& polygon) {
 
 	// face_handles vector will store faces inside given boundary
-	std::vector<Face_handle> face_handles;
+	vector<Face_handle> face_handles;
 	for (Face_handle face : cdt.finite_face_handles()) {
 		face_handles.push_back(face);
 	}
