@@ -135,15 +135,15 @@ int main(int argc, char* argv[])
 {
 
 	// Check if filename is provided as an argument
-	if (argc < 3) {
+	if (argc < 4) {
 		cerr << "Error: No input filename provided.\n";
 		cerr << "Usage: " << argv[0] << " <input_filename>\n";
 		return 1;
 	}
 
 	// Get the filename from the command-line argument
-	string filename = argv[1];
-	int steiner_points = stoi(argv[2]);
+	string filename = argv[2];
+	int steiner_points = 8;
 	// Read the file
 	ifstream in_file(filename);
 	if (!in_file) {
@@ -213,7 +213,7 @@ int main(int argc, char* argv[])
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
-	export_to_json(cdt, steiner, "output.json", instance_uid, vertex_indices, polygon);
+	export_to_json(cdt, steiner, argv[4], instance_uid, vertex_indices, polygon);
 
 	cout << "steiner points added: " << steiner.size() << endl;
 
