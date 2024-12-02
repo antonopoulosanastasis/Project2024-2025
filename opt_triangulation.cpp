@@ -143,7 +143,7 @@ int main(int argc, char* argv[])
 
 	// Get the filename from the command-line argument
 	string filename = argv[2];
-	int steiner_points = 8;
+	int steiner_points = 6;
 	// Read the file
 	ifstream in_file(filename);
 	if (!in_file) {
@@ -197,11 +197,21 @@ int main(int argc, char* argv[])
 		cout << "All triangles in the triangulation are acute or right-angled.\n";
 	}
 
+	bool delaunay = json_value.at("delaunay").as_bool();
+
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
+
+	if (!delaunay) {
+		cout << "Delaunay is false" << '\n';
+		brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+	}
+
+	vector<Point_2> steiner2;
+
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
 	//local_search_optimization(cdt, polygon, 1000, steiner);
-	simulated_annealing_optimization(cdt, polygon, steiner);
+	simulated_annealing_optimization(cdt, polygon, steiner2);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -212,6 +222,8 @@ int main(int argc, char* argv[])
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
+
+	steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
 
 	export_to_json(cdt, steiner, argv[4], instance_uid, vertex_indices, polygon);
 
