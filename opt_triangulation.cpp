@@ -131,27 +131,6 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	file << json::serialize(json_output);
 }
 
-// Function to flip the edge opposite to the obtuse angle in a face
-void flip_obtuse_edges(CDT& cdt) {
-    for (Face_handle f : cdt.finite_face_handles()) {
-        int obtuse_index = find_obtuse_angle_index(f);
-        if (obtuse_index != -1) {  // If there is an obtuse angle in the face
-            // Find the index of the edge opposite to the obtuse angle
-            int opposite_edge_index = (obtuse_index + 1) % 3;
-
-            // Check if the edge is flippable
-            if (1) {
-                // Perform the edge flip
-                cdt.flip(f, opposite_edge_index);
-                cout << "Flipped edge opposite to obtuse angle in triangle.\n";
-                return;
-            } else {
-                cout << "Edge is not flippable.\n";
-            }
-        }
-    }
-}
-
 int main(int argc, char* argv[])
 {
 
