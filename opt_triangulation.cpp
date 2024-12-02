@@ -86,7 +86,7 @@ string rational_to_string(const K::FT& coord) {
 } 
 
 // Function to create output.json
-void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices, const Polygon_2 polygon) {
+void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices, const Polygon_2 polygon, int obtuse_count, boost::json::string method, boost::json::object parameters) {
 	json::object json_output;
 	json::array steiner_points_x, steiner_points_y, edge_array;
 	vector<pair<int, int>> edges;
@@ -126,6 +126,9 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	json_output["steiner_points_x"] = steiner_points_x;
 	json_output["steiner_points_y"] = steiner_points_y;
 	json_output["edges"] = edge_array;
+	json_output["obtuse_count"] = obtuse_count;
+	json_output["method"] = method;
+	json_output["parameters"] = parameters;
 
 	ofstream file(filename);
 	file << json::serialize(json_output);
@@ -209,6 +212,7 @@ int main(int argc, char* argv[])
 	}
 
 	vector<Point_2> steiner2;
+	boost::json::object parameters = json_value.at("parameters").as_object();
 
 	if( method == "local" ) {
 		cout << "Using Local Search" << '\n';
@@ -235,13 +239,15 @@ int main(int argc, char* argv[])
 		cout << "All triangles in the triangulation are acute or right-angled.\n";
 	}
 
-	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
+	int obtuse_count = count_obtuse_angles(cdt, polygon);
+
+	cout << "Obtuse angle count: "<< obtuse_count << '\n';
 
 	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
 	steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
 
-	export_to_json(cdt, steiner, argv[4], instance_uid, vertex_indices, polygon);
+	export_to_json(cdt, steiner, argv[4], instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
 
 	cout << "steiner points added: " << steiner.size() << endl;
 
