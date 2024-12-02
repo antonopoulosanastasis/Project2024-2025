@@ -198,6 +198,7 @@ int main(int argc, char* argv[])
 	}
 
 	bool delaunay = json_value.at("delaunay").as_bool();
+	json::string method = json_value.at("method").as_string();
 
 	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
@@ -209,9 +210,24 @@ int main(int argc, char* argv[])
 
 	vector<Point_2> steiner2;
 
+	if( method == "local" ) {
+		cout << "Using Local Search" << '\n';
+		boost::json::object parameters = json_value.at("parameters").as_object();
+    	int L = parameters.at("L").as_int64();
+		local_search_optimization(cdt, polygon, L, steiner2);
+	}
+	else if ( method == "sa" ) {
+		cout << "Using Simulated Annealing" << '\n';
+		boost::json::object parameters = json_value.at("parameters").as_object();
+		double alpha = parameters.at("alpha").as_double();
+		double beta = parameters.at("beta").as_double();
+		int L = parameters.at("L").as_int64();
+		simulated_annealing_optimization(cdt, polygon, steiner2, alpha, beta, L);
+	}
+
 	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
 	//local_search_optimization(cdt, polygon, 1000, steiner);
-	simulated_annealing_optimization(cdt, polygon, steiner2);
+	//simulated_annealing_optimization(cdt, polygon, steiner2);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
