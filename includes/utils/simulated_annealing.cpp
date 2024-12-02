@@ -1,13 +1,7 @@
 #include "simulated_annealing.h"
 
-// Constants needed for Energy calculation
-// Energy = ALPHA * <number of obtuse angles> + BETA * <steiner point count>
-#define ALPHA 3.0
-#define BETA  0.5
-#define L     5000		// number of iterations in simulated annealing algorithm
-
-double compute_energy(CDT& cdt, Polygon_2& polygon, int steiner_count) {
-	return ALPHA * count_obtuse_angles(cdt, polygon) + BETA * steiner_count;
+double compute_energy(CDT& cdt, Polygon_2& polygon, int steiner_count, double alpha, double beta) {
+	return alpha * count_obtuse_angles(cdt, polygon) + beta * steiner_count;
 }
 
 Point choose_steiner_point(CDT& cdt, const Polygon_2& polygon, int option) {
@@ -25,8 +19,8 @@ Point choose_steiner_point(CDT& cdt, const Polygon_2& polygon, int option) {
 	}
 }
 
-void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner) {
-	double energy = compute_energy(cdt, polygon, 0);
+void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L) {
+	double energy = compute_energy(cdt, polygon, 0, alpha, beta);
 	double temperature = 1.0;
 
 	// Random number generator
@@ -54,7 +48,7 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 			}
 
 			// Calculate delta_energy
-			double new_energy = compute_energy(triangulation, polygon, steiner.size() + 1);
+			double new_energy = compute_energy(triangulation, polygon, steiner.size() + 1, alpha, beta);
 			double delta_energy = new_energy - energy;
 			long double expon = exp(-delta_energy / temperature);
 			long double r = distribution(generator);
