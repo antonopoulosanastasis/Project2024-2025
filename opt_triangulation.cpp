@@ -144,11 +144,11 @@ int main(int argc, char* argv[])
 	}
 
 	string filename, output;
-	if(argv[1] == "-i" && argv[3] == "-o") {
+	if((strcmp(argv[1], "-i") == 0) && (strcmp(argv[3], "-o") == 0)) {
 		filename = argv[2];
 		output = argv[4];
 	}
-	else if (argv[1] == "-o" && argv[3] == "-i") {
+	else if ((strcmp(argv[1], "-o") == 0) && (strcmp(argv[3], "-i") == 0)) {
 		filename = argv[4];
 		output = argv[2];
 	}
