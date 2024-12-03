@@ -137,16 +137,22 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 int main(int argc, char* argv[])
 {
 
-	// Check if filename is provided as an argument
+	// Check arguments
 	if (argc < 4) {
-		cerr << "Error: No input filename provided.\n";
-		cerr << "Usage: " << argv[0] << " <input_filename>\n";
+		cerr << "Error \n";
 		return 1;
 	}
 
-	// Get the filename from the command-line argument
-	string filename = argv[2];
-	int steiner_points = 6;
+	string filename, output;
+	if(argv[1] == "-i" && argv[3] == "-o") {
+		filename = argv[2];
+		output = argv[4];
+	}
+	else if (argv[1] == "-o" && argv[3] == "-i") {
+		filename = argv[4];
+		output = argv[2];
+	}
+	
 	// Read the file
 	ifstream in_file(filename);
 	if (!in_file) {
@@ -164,7 +170,10 @@ int main(int argc, char* argv[])
 	json::array points_x = json_data["points_x"].as_array();
 	json::array points_y = json_data["points_y"].as_array();
 	json::array region_boundary = json_data["region_boundary"].as_array();
-	json::array additional_constraints = json_data["additional_constraints"].as_array(); 
+	json::array additional_constraints = json_data["additional_constraints"].as_array();
+	bool delaunay = json_value.at("delaunay").as_bool();
+	json::string method = json_value.at("method").as_string();
+	boost::json::object parameters = json_value.at("parameters").as_object();
 
 	// Deserialize points and constraints
 	vector<Point> points = deserialize_points(points_x, points_y);
@@ -200,38 +209,27 @@ int main(int argc, char* argv[])
 		cout << "All triangles in the triangulation are acute or right-angled.\n";
 	}
 
-	bool delaunay = json_value.at("delaunay").as_bool();
-	json::string method = json_value.at("method").as_string();
-
-	// int count = 0;
 	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 
 	if (!delaunay) {
 		cout << "Delaunay is false" << '\n';
-		brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
+		brute_force_steiner_insertion(cdt, 6, polygon, steiner);
 	}
 
 	vector<Point_2> steiner2;
-	boost::json::object parameters = json_value.at("parameters").as_object();
 
 	if( method == "local" ) {
 		cout << "Using Local Search" << '\n';
-		boost::json::object parameters = json_value.at("parameters").as_object();
     	int L = parameters.at("L").as_int64();
 		local_search_optimization(cdt, polygon, L, steiner2);
 	}
 	else if ( method == "sa" ) {
 		cout << "Using Simulated Annealing" << '\n';
-		boost::json::object parameters = json_value.at("parameters").as_object();
 		double alpha = parameters.at("alpha").as_double();
 		double beta = parameters.at("beta").as_double();
 		int L = parameters.at("L").as_int64();
 		simulated_annealing_optimization(cdt, polygon, steiner2, alpha, beta, L);
 	}
-
-	// brute_force_steiner_insertion(cdt, steiner_points, polygon, steiner);
-	//local_search_optimization(cdt, polygon, 1000, steiner);
-	//simulated_annealing_optimization(cdt, polygon, steiner2);
 
 	if (is_obtuse_triangulation(cdt)) {
 		cout << "The triangulation contains at least one obtuse triangle.\n";
@@ -247,7 +245,7 @@ int main(int argc, char* argv[])
 
 	steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
 
-	export_to_json(cdt, steiner, argv[4], instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
+	export_to_json(cdt, steiner, output, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
 
 	cout << "steiner points added: " << steiner.size() << endl;
 
