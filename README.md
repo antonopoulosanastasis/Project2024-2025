@@ -25,7 +25,7 @@ root/
 │    └── obtuse.h
 ├── CMakeLists.txt
 ├── README.md
-└── test.cpp
+└── opt_triangulation.cpp
 
 Κώδικας στα αρχεία:
 ->Τα header files έχουν όλα declarations/definitions συναρτήσεων με το εκάστοτε όνομα. Για παράδειγμα το obtuse.h περιέχει declarations συναρτήσεων για έλεγχο obtuse γωνιών/τριγώνων.
