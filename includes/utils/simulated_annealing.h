@@ -11,6 +11,7 @@
 #include "projection.h"
 #include "obtuse.h"
 #include "centroid.h"
+#include "adjacent.h"
 
 using namespace std;
 

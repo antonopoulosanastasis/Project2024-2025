@@ -10,6 +10,7 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 		CDT cdt_projection = cdt;
 		CDT cdt_midpoint = cdt;
 		CDT cdt_centroid = cdt;
+		CDT cdt_adjacent = cdt;
 		CDT best_triangulation = cdt;
 		int best_obtuse_count = obtuse_count;
 
@@ -17,7 +18,8 @@ void local_search_optimization(CDT& cdt, Polygon_2& polygon, int max_iterations,
 			insert_circumcenter(cdt_circumcenter, polygon),
 			insert_projection(cdt_projection, polygon),
 			insert_midpoint(cdt_midpoint, polygon),
-			insert_centroid(cdt_centroid, polygon)
+			insert_centroid(cdt_centroid, polygon),
+			insert_adjacent(cdt_adjacent, polygon)
 		};
 
 		Point final_point;

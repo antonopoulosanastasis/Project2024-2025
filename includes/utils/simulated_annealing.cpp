@@ -14,6 +14,8 @@ Point choose_steiner_point(CDT& cdt, const Polygon_2& polygon, int option) {
 			return insert_circumcenter(cdt, polygon);
 		case 4:
 			return insert_centroid(cdt, polygon);
+		case 5:
+			return insert_adjacent(cdt, polygon);
 		default:
 			throw invalid_argument("Invalid Steiner point option");
 	}
@@ -28,7 +30,7 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 	// uniform distribution for R in Metropolis criterion
 	uniform_real_distribution<double> distribution(0.0, 1.0);
 	// Range [1,4] for random int generator in order to choose steiner point method
-	uniform_int_distribution<int> steiner_choice(1, 4);
+	uniform_int_distribution<int> steiner_choice(1, 5);
 
 	while(temperature >= 0 && count_obtuse_angles(cdt, polygon)) {
 		for(Face_handle f : cdt.finite_face_handles()){
