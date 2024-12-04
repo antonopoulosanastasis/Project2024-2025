@@ -15,6 +15,7 @@
 #include "brute_force.h"
 #include "local_search.h"
 #include "simulated_annealing.h"
+#include "ant_colony.h"
 
 namespace json = boost::json;
 using namespace std;
@@ -229,6 +230,18 @@ int main(int argc, char* argv[])
 		double beta = parameters.at("beta").as_double();
 		int L = parameters.at("L").as_int64();
 		simulated_annealing_optimization(cdt, polygon, steiner2, alpha, beta, L);
+	} else if ( method == "ant" ) {
+		cout << "Using Ant Colony" << endl;
+		double alpha = parameters.at("alpha").as_double();
+		double beta = parameters.at("beta").as_double();
+		double xi = parameters.at("xi").as_double();
+		double psi = parameters.at("psi").as_double();
+		double lambda = parameters.at("lambda").as_double();
+		int kappa = parameters.at("kappa").as_int64();
+		int L = parameters.at("L").as_int64();
+		ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L);
+	} else {
+		throw invalid_argument("Invalid minimization option");
 	}
 
 	if (is_obtuse_triangulation(cdt)) {
