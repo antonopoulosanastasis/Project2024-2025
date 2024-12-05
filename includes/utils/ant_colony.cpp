@@ -1,4 +1,5 @@
 #include <cmath>
+#include <random>
 
 #include "circumcenter.h"
 #include "ant_colony.h"
@@ -83,8 +84,8 @@ bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon) {
 }
 
 // Calculate heuristic value for every steiner option
-double* heuristic(Face_handle& face, const Polygon_2& polygon) {
-	double heuristic[4];
+vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon) {
+	vector<double> heuristic;
 	double r = radius_to_height_ratio(face);
 	if(has_adjacent_obtuse_faces(face, polygon)) {
 		heuristic[0] = 1.0;
@@ -101,7 +102,7 @@ double* heuristic(Face_handle& face, const Polygon_2& polygon) {
 void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]) {
 	int i;
 	double probability[4];
-	double heuristic_values[4];
+	vector<double> heuristic_values;
 	heuristic_values = heuristic(face, polygon);
 	// Now heuristic_values has heuristic values for every steiner option
 
@@ -114,15 +115,14 @@ void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon
 	for(i = 0; i < 4; i++) {
 		probability[i] = (pow(pheromone[i], xi) * pow(heuristic_values[i], psi)) / sum;
 	}
-	// Random number generator
-	default_random_engine generator;
-	// Creates a Mersenne Twister random number generator, seeded with the value from rd().
-	// here, we use rd() as a seed to make sure the values differ every time it runs
+	// Create a random device to seed the random number generator
+	random_device rd;
+	// Create a Mersenne Twister pseudo-random generator initialized with rd
 	mt19937 gen(rd());
-	// uniform distribution for a random number in [0,1]
-	uniform_real_distribution<double> distribution(0.0, 1.0);
+	// Create a uniform distribution for generating doubles between 0 and 1
+	uniform_real_distribution<> distribution(0.0, 1.0);
 	// random stores a value in [0,1]
-	double random = distribution(generator);
+	double random = distribution(gen);
 	double total_probability = 0.0;
 	for(i = 0; i < 4; i++) {
 		total_probability += probability[i];

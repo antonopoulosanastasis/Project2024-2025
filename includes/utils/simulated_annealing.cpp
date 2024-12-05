@@ -25,10 +25,12 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 	double energy = compute_energy(cdt, polygon, 0, alpha, beta);
 	double temperature = 1.0;
 
-	// Random number generator
-	default_random_engine generator;
-	// uniform distribution for R in Metropolis criterion
-	uniform_real_distribution<double> distribution(0.0, 1.0);
+	// Create a random device to seed the random number generator
+	random_device rd;
+	// Create a Mersenne Twister pseudo-random generator initialized with rd
+	mt19937 gen(rd());
+	// Create a uniform distribution for generating doubles between 0 and 1
+	uniform_real_distribution<> distribution(0.0, 1.0);
 	// Range [1,4] for random int generator in order to choose steiner point method
 	uniform_int_distribution<int> steiner_choice(1, 5);
 
@@ -41,7 +43,7 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 			CDT triangulation = cdt;
 			// For every obtuse triangle:
 			// Randomly select a Steiner point insertion method
-			int option = steiner_choice(generator);
+			int option = steiner_choice(gen);
 			Point steiner_point = choose_steiner_point(triangulation, polygon, option);
 
 			// If, for any reason, insertion fails, continue
@@ -53,7 +55,7 @@ void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point
 			double new_energy = compute_energy(triangulation, polygon, steiner.size() + 1, alpha, beta);
 			double delta_energy = new_energy - energy;
 			long double expon = exp(-delta_energy / temperature);
-			long double r = distribution(generator);
+			long double r = distribution(gen);
 
 			if(delta_energy < 0 || expon > r) {
 				// delta_energy < 0, we accept the new configuration
