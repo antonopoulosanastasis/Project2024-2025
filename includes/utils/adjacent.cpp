@@ -94,24 +94,33 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 						: make_pair(edge.second, edge.first);
 					edge_count[normalized_edge]++;
 				}
-				// Collect only external edges (edges that appear exactly once)
+				// Step 1: Identify the outer edges of the polygon
 				vector<pair<Point, Point>> external_edges;
 				for (const auto& [edge, count] : edge_count) {
 					if (count == 1) { // Edge is not shared
 						external_edges.push_back(edge);
 					}
 				}
-				// Mark only the external edges as constraints
+				// Step 2: Mark the external edges as constraints
 				for (const auto& edge : external_edges) {
 					cdt.insert_constraint(edge.first, edge.second);
 				}
-				// Calculate the center of the polygon (centroid of points)
+				// Step 3: Remove the polygon points from the CDT
+				for (const auto& point : obtuse_polygon_points) {
+					cdt.remove(point);
+				}
+				// Step 4: Calculate the center of the polygon (centroid of points)
 				Point center = calculate_polygon_center(obtuse_polygon_points);
 
-				// Insert the center into the CDT
+				// Step 5: Insert the polygon center into the CDT
 				cdt.insert(center);
 
-				// Unmark the external edges
+				// Step 6: Re-insert the original polygon points
+				for (const auto& point : obtuse_polygon_points) {
+					cdt.insert(point);
+				}
+
+				// Step 7: Unmark the external edges
 				for (const auto& edge : external_edges) {
 					cdt.remove_constraint(edge.first, edge.second);
 				}
@@ -120,7 +129,6 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 			}
 		}
 	}
-
 	// If no valid point was inserted, return default-constructed point
 	return Point();
 }
