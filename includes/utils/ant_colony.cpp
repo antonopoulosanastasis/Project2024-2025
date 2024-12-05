@@ -98,7 +98,7 @@ double* heuristic(Face_handle& face, const Polygon_2& polygon) {
 }
 
 // Calculate probabilities for every steiner option, and pick the one with the highest probability
-void improve_triangulation(Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]) {
+void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]) {
 	int i;
 	double probability[4];
 	double heuristic_values[4];
@@ -130,22 +130,29 @@ void improve_triangulation(Face_handle& face, const Polygon_2& polygon, const do
 			break;
 		}
 	}
+	Point to_insert;
 	switch (i) {
 		case 0:
 			// insert_adjacent
-			break;
+			insert_adjacent(cdt, polygon);
+			return;
 		case 1:
 			// insert projection
+			to_insert = steiner_projection_at_face(face, polygon);
+			cdt.insert(to_insert);
 			break;
 		case 2:
 			// insert circumcenter
+			to_insert = steiner_circumcenter_at_face(face, polygon);
 			break;
 		case 3:
 			// insert midpoint
+			to_insert = steiner_midpoint_at_face(face, polygon);
 			break;
 		default:
 			throw invalid_argument("Invalid Steiner point option");
 	}
+	cdt.insert(to_insert);
 }
 
 void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
