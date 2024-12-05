@@ -35,3 +35,26 @@ Point insert_projection(CDT& cdt, const Polygon_2& polygon) {
 	}
 	return Point();
 }
+
+Point steiner_projection_at_face(Face_handle& face, const Polygon_2& polygon) {
+	Point centroid = get_centroid(face);
+	if (is_point_outside_polygon(polygon, centroid)) {
+		return Point();
+	}
+	int obtuse_index = find_obtuse_angle_index(f); 
+	if (obtuse_index != -1) {
+		Point obtuse_vertex = f->vertex(obtuse_index)->point();
+		// Get the two vertices opposite the obtuse angle
+		Point opposite_p1 = f->vertex((obtuse_index + 1) % 3)->point();
+		Point opposite_p2 = f->vertex((obtuse_index + 2) % 3)->point();
+
+		// Create line from opposite points
+		// and get the projection
+		Line line(opposite_p1, opposite_p2);
+		Point projection = line.projection(obtuse_vertex);
+
+		return projection;
+
+	}
+	return Point();
+}

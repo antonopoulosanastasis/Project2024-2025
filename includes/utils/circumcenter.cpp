@@ -54,15 +54,35 @@ Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon) {
 				// If the circumcenter is inside or on the boundary, insert it
 				cdt.insert(circumcenter);
 				return circumcenter;
-				//cout << "Inserted circumcenter at (" << circumcenter.x() << ", " << circumcenter.y() << ") to break up obtuse triangle.\n";
             } else {
 				// Otherwise, compute and insert the centroid of the CURRENT face
 				// calling insert_centroid() here does not guarantee that THIS face will be picked
 				Point centroid = get_centroid(f);
 				cdt.insert(centroid);
 				return centroid;
-				//cout << "Inserted centroid at (" << centroid.x() << ", " << centroid.y() << ") to break up obtuse triangle.\n";
 			}
+		}
+	}
+	return Point();
+}
+
+Point steiner_circumcenter_at_face(Face_handle& face, const Polygon_2& polygon) {
+	Point centroid = get_centroid(face);
+	if (is_point_outside_polygon(polygon, centroid)) {
+		return Point();
+	}
+	int obtuse_index = find_obtuse_angle_index(f);
+	if (obtuse_index != -1) {  // If there is an obtuse angle in the face
+		// Compute the circumcenter of the triangle
+		Point circumcenter = get_circumcenter(f);
+
+		if (!is_point_outside_polygon(polygon, circumcenter)) {
+			// If the circumcenter is inside or on the boundary, return it
+			return circumcenter;
+        } else {
+			// Otherwise, compute and return the centroid of the CURRENT face
+			Point centroid = get_centroid(f);
+			return centroid;
 		}
 	}
 	return Point();

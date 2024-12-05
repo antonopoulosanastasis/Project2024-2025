@@ -114,13 +114,23 @@ void improve_triangulation(Face_handle& face, const Polygon_2& polygon, const do
 	for(i = 0; i < 4; i++) {
 		probability[i] = (pow(pheromone[i], xi) * pow(heuristic_values[i], psi)) / sum;
 	}
-	int max_index = 0;
-	for(i = 1; i < 4; i++) {
-		if (probability[i] > probability[max_index]) {
-			max_index = i;
+	// Random number generator
+	default_random_engine generator;
+	// Creates a Mersenne Twister random number generator, seeded with the value from rd().
+	// here, we use rd() as a seed to make sure the values differ every time it runs
+	mt19937 gen(rd());
+	// uniform distribution for a random number in [0,1]
+	uniform_real_distribution<double> distribution(0.0, 1.0);
+	// random stores a value in [0,1]
+	double random = distribution(generator);
+	double total_probability = 0.0;
+	for(i = 0; i < 4; i++) {
+		total_probability += probability[i];
+		if(random <= total_probability) {
+			break;
 		}
 	}
-	switch (max_index) {
+	switch (i) {
 		case 0:
 			// insert_adjacent
 			break;
