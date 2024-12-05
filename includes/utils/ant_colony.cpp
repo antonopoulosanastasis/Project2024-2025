@@ -12,7 +12,7 @@ double compute_distance(const Point& p1, const Point& p2) {
 }
 
 // Function to calculate the circumradius
-double circumradius(Face_handle face) {
+double circumradius(Face_handle& face) {
 	// Get the vertices of the triangle
 	Point_2 A = face->vertex(0)->point();
 	Point_2 B = face->vertex(1)->point();
@@ -30,7 +30,8 @@ double circumradius(Face_handle face) {
 	return (a * b * c) / (4.0 * area);
 }
 
-double longest_side_height(Face_handle face) {
+// Function to calculate the height from longest side
+double longest_side_height(Face_handle& face) {
 	// Array that stores the lengths of each side of the face
 	double lengths[3];
 	Point_2 A = face->vertex(0)->point();
@@ -54,11 +55,13 @@ double longest_side_height(Face_handle face) {
 	return (2.0 * area) / lengths[longest_index];
 }
 
-double radius_to_height_ratio(Face_handle face) {
+// Function to calculate the ratio r = circumradius / triangle height from longest side
+double radius_to_height_ratio(Face_handle& face) {
 	return circumradius(face) / longest_side_height(face);
 }
 
-bool has_adjacent_obtuse_faces(Face_handle face, const Polygon_2& polygon) {
+// Check if adjacent method should be prioritized
+bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon) {
 	for (int i = 0; i < 3; i++) {
 		Face_handle neighbor = face->neighbor(i);
         // Check if neighbor is inside boundary and has an obtuse angle
@@ -79,25 +82,63 @@ bool has_adjacent_obtuse_faces(Face_handle face, const Polygon_2& polygon) {
 	return false;
 }
 
-double heuristic(Face_handle& face, const Polygon_2& polygon) {
-	if(has_adjacent_obtuse_faces(face, polygon)) {
-		// h_{mean adjacent} = 1
-		return 1.0;
-	}
+// Calculate heuristic value for every steiner option
+double* heuristic(Face_handle& face, const Polygon_2& polygon) {
+	double heuristic[4];
 	double r = radius_to_height_ratio(face);
-	double h;
-	if(r < 1.0) {
-		h = max(0.0, (3 - 2 * r) / 3.0);
-	} else if (r < 2.0) {
-		h = r / (2 + r);
+	if(has_adjacent_obtuse_faces(face, polygon)) {
+		heuristic[0] = 1.0;
 	} else {
-		h = max(0.0, (r - 1) / r);
+		heuristic[0] = 0.0;
 	}
-	return h;
+	heuristic[1] = max(0.0, (r - 1) / r);
+	heuristic[2] = r / (2 + r);
+	heuristic[3] = max(0.0, (3 - 2 * r) / 3.0);
+	return heuristic;
 }
 
+// Calculate probabilities for every steiner option, and pick the one with the highest probability
+void improve_triangulation(Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]) {
+	int i;
+	double probability[4];
+	double heuristic_values[4];
+	heuristic_values = heuristic(face, polygon);
+	// Now heuristic_values has heuristic values for every steiner option
 
+	// Stores the total value of the sum (T_i^x * H_i^y) for i in steiner options in sum
+	int sum = 0;
+	for(i = 0; i < 4; i++) {
+		sum += pow(pheromone[i], xi) * pow(heuristic_values[i], psi);
+	}
+	// Calculate probabilities
+	for(i = 0; i < 4; i++) {
+		probability[i] = (pow(pheromone[i], xi) * pow(heuristic_values[i], psi)) / sum;
+	}
+	int max_index = 0;
+	for(i = 1; i < 4; i++) {
+		if (probability[i] > probability[max_index]) {
+			max_index = i;
+		}
+	}
+	switch (max_index) {
+		case 0:
+			// insert_adjacent
+			break;
+		case 1:
+			// insert projection
+			break;
+		case 2:
+			// insert circumcenter
+			break;
+		case 3:
+			// insert midpoint
+			break;
+		default:
+			throw invalid_argument("Invalid Steiner point option");
+	}
+}
 
-void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, double alpha, double beta, double xi, double psi, double lambda, int kappa, int L) {
+void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
+							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L) {
 
 }

@@ -5,16 +5,25 @@
 
 using namespace std;
 
-double circumradius(Face_handle face);
+// Function to calculate circumradius of a face
+double circumradius(Face_handle& face);
 
-double longest_side_height(Face_handle face);
+// Function to calculate the height from longest side
+double longest_side_height(Face_handle& face);
 
-double radius_to_height_ratio(Face_handle face);
+// Function to calculate the ratio r = circumradius / triangle height from longest side
+double radius_to_height_ratio(Face_handle& face);
 
-bool has_adjacent_obtuse_faces(Face_handle face, const Polygon_2& polygon);
+// Check if adjacent method should be prioritized
+bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon);
 
-double heuristic(Face_handle face, const Polygon_2& polygon);
+// Calculate heuristic value for every steiner option
+double* heuristic(Face_handle& face, const Polygon_2& polygon);
 
-void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, double alpha, double beta, double xi, double psi, double lambda, int kappa, int L);
+// Calculate probabilities for every steiner option, and pick the one with the highest probability
+void improve_triangulation(Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[])
+
+void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
+							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L);
 
 #endif // ANT_COLONY_H
