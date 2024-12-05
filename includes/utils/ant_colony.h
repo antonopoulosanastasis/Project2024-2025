@@ -18,7 +18,7 @@ double radius_to_height_ratio(Face_handle& face);
 bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon);
 
 // Calculate heuristic value for every steiner option
-double* heuristic(Face_handle& face, const Polygon_2& polygon);
+vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon);
 
 // Calculate probabilities for every steiner option, and pick the one with the highest probability
 void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]);
