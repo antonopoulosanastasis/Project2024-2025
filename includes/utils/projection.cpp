@@ -41,12 +41,12 @@ Point steiner_projection_at_face(Face_handle& face, const Polygon_2& polygon) {
 	if (is_point_outside_polygon(polygon, centroid)) {
 		return Point();
 	}
-	int obtuse_index = find_obtuse_angle_index(f); 
+	int obtuse_index = find_obtuse_angle_index(face); 
 	if (obtuse_index != -1) {
-		Point obtuse_vertex = f->vertex(obtuse_index)->point();
+		Point obtuse_vertex = face->vertex(obtuse_index)->point();
 		// Get the two vertices opposite the obtuse angle
-		Point opposite_p1 = f->vertex((obtuse_index + 1) % 3)->point();
-		Point opposite_p2 = f->vertex((obtuse_index + 2) % 3)->point();
+		Point opposite_p1 = face->vertex((obtuse_index + 1) % 3)->point();
+		Point opposite_p2 = face->vertex((obtuse_index + 2) % 3)->point();
 
 		// Create line from opposite points
 		// and get the projection

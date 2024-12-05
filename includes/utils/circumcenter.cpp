@@ -71,17 +71,17 @@ Point steiner_circumcenter_at_face(Face_handle& face, const Polygon_2& polygon) 
 	if (is_point_outside_polygon(polygon, centroid)) {
 		return Point();
 	}
-	int obtuse_index = find_obtuse_angle_index(f);
+	int obtuse_index = find_obtuse_angle_index(face);
 	if (obtuse_index != -1) {  // If there is an obtuse angle in the face
 		// Compute the circumcenter of the triangle
-		Point circumcenter = get_circumcenter(f);
+		Point circumcenter = get_circumcenter(face);
 
 		if (!is_point_outside_polygon(polygon, circumcenter)) {
 			// If the circumcenter is inside or on the boundary, return it
 			return circumcenter;
         } else {
 			// Otherwise, compute and return the centroid of the CURRENT face
-			Point centroid = get_centroid(f);
+			Point centroid = get_centroid(face);
 			return centroid;
 		}
 	}
