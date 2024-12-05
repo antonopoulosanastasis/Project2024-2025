@@ -81,7 +81,6 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 					}
 				}
 			}
-
 			// Check if the formed polygon is convex
 			if (is_convex(obtuse_polygon_points)) {
 				map<pair<Point, Point>, int> edge_count;
@@ -106,8 +105,15 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 					cdt.insert_constraint(edge.first, edge.second);
 				}
 				// Step 3: Remove the polygon points from the CDT
-				for (const auto& point : obtuse_polygon_points) {
-					cdt.remove(point);
+				for (auto& point : obtuse_polygon_points) {
+					// Find the vertex handle corresponding to the point
+					for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
+						if (v->point() == point) {
+							// Remove the vertex from the CDT
+							cdt.remove(v);
+							break;
+						}
+					}
 				}
 				// Step 4: Calculate the center of the polygon (centroid of points)
 				Point center = calculate_polygon_center(obtuse_polygon_points);
@@ -122,7 +128,20 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 
 				// Step 7: Unmark the external edges
 				for (const auto& edge : external_edges) {
-					cdt.remove_constraint(edge.first, edge.second);
+					auto fh = cdt.locate(CGAL::midpoint(edge.first, edge.second)); // Locate a face near the edge
+					for (int i = 0; i < 3; ++i) {
+						auto edge_vertices = std::make_pair(fh->vertex(i)->point(), fh->vertex((i + 1) % 3)->point());
+						// Normalize the edge vertices
+						auto normalized_edge = edge_vertices.first < edge_vertices.second
+							? std::make_pair(edge_vertices.first, edge_vertices.second)
+							: std::make_pair(edge_vertices.second, edge_vertices.first);
+
+						// If the edge matches the current external edge, remove the constraint
+						if (normalized_edge == edge) {
+							cdt.remove_constraint(fh, i);
+							break;
+						}
+					}
 				}
 				// Return the inserted point
 				return center;
