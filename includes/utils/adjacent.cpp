@@ -152,7 +152,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 	return Point();
 }
 
-Point steiner_adjacent_at_face(CDT& cdt, Face_handle& face, const Polygon_2& polygon) {
+Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygon) {
 	
 	int obtuse_index = find_obtuse_angle_index(f);
 	if (obtuse_index != -1) { // Current face has an obtuse angle

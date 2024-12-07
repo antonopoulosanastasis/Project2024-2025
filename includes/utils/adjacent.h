@@ -11,4 +11,6 @@ Point calculate_polygon_center(const vector<Point>& points);
 
 Point insert_adjacent(CDT& cdt, const Polygon_2& polygon);
 
+Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygon);
+
 #endif // ADJACENT_H
