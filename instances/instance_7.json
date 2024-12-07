@@ -42,7 +42,17 @@
         7,
         6,
         2
-    ],
+    ]
+    ,
+    "method": "sa",
     "num_constraints": 0,
-    "additional_constraints": []
+    "additional_constraints": [],
+    "parameters": {
+        "alpha": 3.5,
+        "beta": 0.5,
+        "xi": 1,
+        "psi": 1,
+        "L": 500
+    },
+    "delaunay": true
 }
