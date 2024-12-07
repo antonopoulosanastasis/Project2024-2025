@@ -25,7 +25,7 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 double evaluate_triangulation(const CDT& cdt, Polygon_2& polygon, const int& steiner_count, const double& alpha, const double& beta);
 
 void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const double& beta, const double& lambda, map<Point, int>& good_ants,
-						 Polygon_2& polygon, const int& steiner_size);
+						 Polygon_2& polygon, vector<Point_2>& steiner);
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
 							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L);

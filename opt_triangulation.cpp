@@ -244,12 +244,6 @@ int main(int argc, char* argv[])
 		throw invalid_argument("Invalid minimization option");
 	}
 
-	if (is_obtuse_triangulation(cdt)) {
-		cout << "The triangulation contains at least one obtuse triangle.\n";
-	} else {
-		cout << "All triangles in the triangulation are acute or right-angled.\n";
-	}
-
 	int obtuse_count = count_obtuse_angles(cdt, polygon);
 
 	cout << "Obtuse angle count: "<< obtuse_count << '\n';
