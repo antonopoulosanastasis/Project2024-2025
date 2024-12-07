@@ -102,7 +102,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 				}
 				// Step 2: Mark the external edges as constraints
 				for (const auto& edge : external_edges) {
-					cdt.insert_constraint(edge.first, edge.second);
+					// cdt.insert_constraint(edge.first, edge.second);
 				}
 				// Step 3: Remove the polygon points from the CDT
 				for (auto& point : obtuse_polygon_points) {
@@ -110,7 +110,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 					for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
 						if (v->point() == point) {
 							// Remove the vertex from the CDT
-							cdt.remove(v);
+							// cdt.remove(v);
 							break;
 						}
 					}
@@ -123,7 +123,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 
 				// Step 6: Re-insert the original polygon points
 				for (const auto& point : obtuse_polygon_points) {
-					cdt.insert(point);
+					// cdt.insert(point);
 				}
 
 				// Step 7: Unmark the external edges
@@ -138,7 +138,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 
 						// If the edge matches the current external edge, remove the constraint
 						if (normalized_edge == edge) {
-							cdt.remove_constraint(fh, i);
+							// cdt.remove_constraint(fh, i);
 							break;
 						}
 					}
@@ -217,7 +217,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			}
 			// Step 2: Mark the external edges as constraints
 			for (const auto& edge : external_edges) {
-				cdt.insert_constraint(edge.first, edge.second);
+				// cdt.insert_constraint(edge.first, edge.second);
 			}
 			// Step 3: Remove the polygon points from the CDT
 			for (auto& point : obtuse_polygon_points) {
@@ -225,7 +225,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 				for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
 					if (v->point() == point) {
 						// Remove the vertex from the CDT
-						cdt.remove(v);
+						// cdt.remove(v);
 						break;
 					}
 				}
@@ -238,7 +238,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 
 			// Step 6: Re-insert the original polygon points
 			for (const auto& point : obtuse_polygon_points) {
-				cdt.insert(point);
+				// cdt.insert(point);
 			}
 
 			// Step 7: Unmark the external edges
@@ -253,7 +253,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 
 					// If the edge matches the current external edge, remove the constraint
 					if (normalized_edge == edge) {
-						cdt.remove_constraint(fh, i);
+						// cdt.remove_constraint(fh, i);
 						break;
 					}
 				}

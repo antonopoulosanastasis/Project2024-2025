@@ -1,11 +1,21 @@
 #include <cmath>
 #include <random>
+#include <map>
 
 #include "circumcenter.h"
 #include "ant_colony.h"
 #include "adjacent.h"
 #include "obtuse.h"
 #include "simulated_annealing.h"	// for Energy computation
+
+void remove_non_obtuse_faces(vector<Face_handle>& faces) {
+	for(int i = 0; i < faces.size(); i++) {
+		int obtuse_index = find_obtuse_angle_index(faces.at(i));
+		if (obtuse_index == -1) {
+			faces.erase(faces.begin() + i);
+		}
+	}
+}
 
 // Calculates distance between two points
 double compute_distance(const Point& p1, const Point& p2) {
@@ -99,7 +109,7 @@ vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon) {
 }
 
 // Calculate probabilities for every steiner option, and pick the one with the highest probability
-void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]) {
+Point improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[], int& to_return) {
 	int i;
 	double probability[4];
 	vector<double> heuristic_values;
@@ -134,28 +144,94 @@ void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon
 	switch (i) {
 		case 0:
 			// insert_adjacent
-			insert_adjacent(cdt, polygon);
-			return;
+			to_insert = steiner_adjacent_at_face(cdt, face, polygon);
+			break;
 		case 1:
 			// insert projection
 			to_insert = steiner_projection_at_face(face, polygon);
-			cdt.insert(to_insert);
+			cdt.insert(to_insert);		
 			break;
 		case 2:
 			// insert circumcenter
 			to_insert = steiner_circumcenter_at_face(face, polygon);
+			cdt.insert(to_insert);
 			break;
 		case 3:
 			// insert midpoint
 			to_insert = steiner_midpoint_at_face(face, polygon);
+			cdt.insert(to_insert);
 			break;
 		default:
 			throw invalid_argument("Invalid Steiner point option");
 	}
-	cdt.insert(to_insert);
+	to_return = i;
+	return to_insert;
+
 }
 
-void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
+double evaluate_triangulation(const CDT& cdt, Polygon_2& polygon, const int& steiner_count, const double& alpha, const double& beta) {
+	int obtuse_count = count_obtuse_angles(cdt, polygon);
+	return alpha * obtuse_count + beta * steiner_count;	// The lower the score, the better the triangulation
+}
+
+void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const double& beta, const double& lambda, map<Point, int>& good_ants,
+						 Polygon_2& polygon, const int& steiner_size) {
+
+	for(auto it = good_ants.begin(); it != good_ants.end(); it++) {
+		double delta_tau = 1 / evaluate_triangulation(cdt, polygon, steiner_size, alpha, beta);
+		pheromone[it->second] = (1 - lambda) * pheromone[it->second] + delta_tau;
+	}
+}
+
+void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
 							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L) {
 
+	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
+	for(int cycle = 0; cycle < L; cycle++) {
+		map<Point, int> good_ants;
+		CDT cycle_best = cdt;
+		double cycle_best_score = evaluate_triangulation(cycle_best, polygon, steiner.size(), alpha, beta);
+
+		// face_handles vector will store faces inside given boundary
+		vector<Face_handle> face_handles;
+		for (Face_handle face : cdt.finite_face_handles()) {
+			face_handles.push_back(face);
+		}
+		remove_faces_outside_boundary(face_handles, polygon);
+		remove_non_obtuse_faces(face_handles);
+
+		for (int ant = 0; ant < kappa; ant ++){
+			if (ant >= face_handles.size()) {
+				// already iterated over all obtuse faces
+				break;
+			}
+			int to_return;
+			CDT ant_triangulation = cycle_best;
+			// pick an obtuse face for an ant
+			Face_handle face = face_handles.at(ant);
+			// insert steiner point
+			Point steiner_point = improve_triangulation(ant_triangulation, face, polygon, xi, psi, pheromone, to_return);
+
+			// evaluate triangulation
+			double score = evaluate_triangulation(ant_triangulation, polygon, steiner.size() + 1, alpha, beta);
+			
+			// if the steiner point improved the triangulation, we store the point in a temporary vector
+			if(score < cycle_best_score) {
+				good_ants[steiner_point] = to_return;
+			}
+
+		}
+		// save best triangulation
+		for(auto it = good_ants.begin(); it != good_ants.end(); it++) {
+			CDT temp = cycle_best;
+			temp.insert(it->first);
+			double score = evaluate_triangulation(cdt, polygon, steiner.size() + 1, alpha, beta);
+			if(score < cycle_best_score) {
+				cycle_best.insert(it->first);
+				cycle_best_score = score;
+			}
+		} 
+		cdt = cycle_best;
+		update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner.size());
+	}
 }

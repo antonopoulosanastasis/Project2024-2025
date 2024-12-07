@@ -20,8 +20,12 @@ bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon);
 // Calculate heuristic value for every steiner option
 vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon);
 
-// Calculate probabilities for every steiner option, and pick the one with the highest probability
-void improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[]);
+Point improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[], int& to_return);
+
+double evaluate_triangulation(const CDT& cdt, Polygon_2& polygon, const int& steiner_count, const double& alpha, const double& beta);
+
+void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const double& beta, const double& lambda, map<Point, int>& good_ants,
+						 Polygon_2& polygon, const int& steiner_size);
 
 void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
 							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L);
