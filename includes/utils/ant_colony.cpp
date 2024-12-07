@@ -214,6 +214,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 			
 			// if the steiner point improved the triangulation, we store the point in a temporary vector
 			if(score < cycle_best_score) {
+				cout << "found good ant in loop " << ant  << " of cycle: " << cycle << endl;
 				good_ants[steiner_point] = to_return;
 			}
 
@@ -222,11 +223,12 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		for(auto it = good_ants.begin(); it != good_ants.end(); it++) {
 			CDT temp = cycle_best;
 			temp.insert(it->first);
-			double score = evaluate_triangulation(cdt, polygon, steiner.size() + 1, alpha, beta);
+			double score = evaluate_triangulation(temp, polygon, steiner.size() + 1, alpha, beta);
 			if(score < cycle_best_score) {
 				cycle_best.insert(it->first);
 				cycle_best_score = score;
 				steiner.emplace_back(it->first);
+				cout << "added steiner " << endl;
 			}
 		} 
 		cdt = cycle_best;

@@ -64,7 +64,7 @@
         "psi": 3,
         "L": 500,
 		"lambda": 0.5,
-		"kappa": 10
+		"kappa": 15
     },
     "delaunay": true
 }
