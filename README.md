@@ -10,19 +10,29 @@
 root/ 
 ├── includes/
 │ └── utils/ 
-│    ├── CMakeLists.txt 
-│    ├── custom_cdt.h 
-│    ├── definitions.h 
-│    ├── midpoint.cpp
-│    ├── midpoint.h
-│    ├── projection.cpp
-│    ├── projection.h
-│    ├── circumcenter.cpp
-│    ├── circumcenter.h
+│    ├── adjacent.cpp
+│    ├── adjacent.h
+│    ├── ant_colony.cpp
+│    ├── ant_colony.h
 │    ├── brute_force.cpp
 │    ├── brute_force.h
+│    ├── centroid.cpp
+│    ├── centroid.h
+│    ├── circumcenter.cpp
+│    ├── circumcenter.h
+│    ├── CMakeLists.txt
+│    ├── custom_cdt.h 
+│    ├── definitions.h 
+│    ├── local_search.cpp
+│    ├── local_search.h
+│    ├── midpoint.cpp
+│    ├── midpoint.h
 │    ├── obtuse.cpp 
-│    └── obtuse.h
+│    ├── obtuse.h
+│    ├── projection.cpp
+│    ├── projection.h
+│    ├── simulated_annealing.cpp
+│    └── simulated_annealing.h
 ├── CMakeLists.txt
 ├── README.md
 └── opt_triangulation.cpp
