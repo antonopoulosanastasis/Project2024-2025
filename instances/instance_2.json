@@ -56,13 +56,15 @@
     ],
     "num_constraints": 0,
     "additional_constraints": [],
-    "method": "sa",
+    "method": "ant",
     "parameters": {
         "alpha": 3.5,
         "beta": 0.5,
         "xi": 1,
-        "psi": 1,
-        "L": 500
+        "psi": 3,
+        "L": 500,
+		"lambda": 0.5,
+		"kappa": 10
     },
     "delaunay": true
 }

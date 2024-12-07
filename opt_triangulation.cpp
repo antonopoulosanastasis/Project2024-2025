@@ -234,8 +234,8 @@ int main(int argc, char* argv[])
 		cout << "Using Ant Colony" << endl;
 		double alpha = parameters.at("alpha").as_double();
 		double beta = parameters.at("beta").as_double();
-		double xi = parameters.at("xi").as_double();
-		double psi = parameters.at("psi").as_double();
+		double xi = parameters.at("xi").as_int64();
+		double psi = parameters.at("psi").as_int64();
 		double lambda = parameters.at("lambda").as_double();
 		int kappa = parameters.at("kappa").as_int64();
 		int L = parameters.at("L").as_int64();

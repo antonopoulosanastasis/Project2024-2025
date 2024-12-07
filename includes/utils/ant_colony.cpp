@@ -72,58 +72,54 @@ double radius_to_height_ratio(Face_handle& face) {
 }
 
 // Check if adjacent method should be prioritized
-bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon) {
+bool has_adjacent_obtuse_faces(Face_handle& face, Polygon_2& polygon) {
 	for (int i = 0; i < 3; i++) {
 		Face_handle neighbor = face->neighbor(i);
-        // Check if neighbor is inside boundary and has an obtuse angle
-        bool neighbor_in_boundary = true;
-        for (int j = 0; j < 3; ++j) {
-            if (!polygon.has_on_bounded_side(neighbor->vertex(j)->point())) {
-                neighbor_in_boundary = false;
-                break;
-            }
-		}
-        if (neighbor_in_boundary) {
-            int neighbor_obtuse_index = find_obtuse_angle_index(neighbor);
-            if (neighbor_obtuse_index != -1) {
-				return true;
-			}
-		}
-	}
-	return false;
+        // If neighbor is within the boundary and obtuse, return true
+        if (find_obtuse_angle_index(neighbor) != -1) {
+            return true;
+        }
+    }
+    return false;
 }
 
 // Calculate heuristic value for every steiner option
-vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon) {
+vector<double> heuristic(Face_handle& face, Polygon_2& polygon) {
 	vector<double> heuristic;
+	double h[4];
 	double r = radius_to_height_ratio(face);
 	if(has_adjacent_obtuse_faces(face, polygon)) {
-		heuristic[0] = 1.0;
+		h[0] = 1.0;
 	} else {
-		heuristic[0] = 0.0;
+		h[0] = 0.0;
 	}
-	heuristic[1] = max(0.0, (r - 1) / r);
-	heuristic[2] = r / (2 + r);
-	heuristic[3] = max(0.0, (3 - 2 * r) / 3.0);
+	h[1] = max(0.0, (r - 1) / r);
+	h[2] = r / (2 + r);
+	h[3] = max(0.0, (3 - 2 * r) / 3.0);
+	for(int i = 0; i < 4; i++) {
+		heuristic.push_back(h[i]);
+	}
 	return heuristic;
 }
 
 // Calculate probabilities for every steiner option, and pick the one with the highest probability
-Point improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[], int& to_return) {
+Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, const int& xi, const int& psi, double pheromone[], int& to_return) {
 	int i;
 	double probability[4];
 	vector<double> heuristic_values;
+
 	heuristic_values = heuristic(face, polygon);
+
 	// Now heuristic_values has heuristic values for every steiner option
 
 	// Stores the total value of the sum (T_i^x * H_i^y) for i in steiner options in sum
-	int sum = 0;
+	double sum = 0;
 	for(i = 0; i < 4; i++) {
 		sum += pow(pheromone[i], xi) * pow(heuristic_values[i], psi);
 	}
 	// Calculate probabilities
 	for(i = 0; i < 4; i++) {
-		probability[i] = (pow(pheromone[i], xi) * pow(heuristic_values[i], psi)) / sum;
+		probability[i] = double((pow(pheromone[i], xi) * pow(heuristic_values[i], psi))) / sum;
 	}
 	// Create a random device to seed the random number generator
 	random_device rd;
@@ -132,8 +128,8 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygo
 	// Create a uniform distribution for generating doubles between 0 and 1
 	uniform_real_distribution<> distribution(0.0, 1.0);
 	// random stores a value in [0,1]
-	double random = distribution(gen);
-	double total_probability = 0.0;
+	long double random = distribution(gen);
+	long double total_probability = 0.0;
 	for(i = 0; i < 4; i++) {
 		total_probability += probability[i];
 		if(random <= total_probability) {
@@ -184,8 +180,9 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 }
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L) {
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L) {
 
+	
 	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
 	for(int cycle = 0; cycle < L; cycle++) {
 		map<Point, int> good_ants;
@@ -229,6 +226,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 			if(score < cycle_best_score) {
 				cycle_best.insert(it->first);
 				cycle_best_score = score;
+				steiner.emplace_back(it->first);
 			}
 		} 
 		cdt = cycle_best;

@@ -15,19 +15,19 @@ double longest_side_height(Face_handle& face);
 double radius_to_height_ratio(Face_handle& face);
 
 // Check if adjacent method should be prioritized
-bool has_adjacent_obtuse_faces(Face_handle& face, const Polygon_2& polygon);
+bool has_adjacent_obtuse_faces(Face_handle& face, Polygon_2& polygon);
 
 // Calculate heuristic value for every steiner option
 vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon);
 
-Point improve_triangulation(CDT& cdt, Face_handle& face, const Polygon_2& polygon, const double& xi, const double& psi, double pheromone[], int& to_return);
+Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, const int& xi, const int& psi, double pheromone[], int& to_return);
 
 double evaluate_triangulation(const CDT& cdt, Polygon_2& polygon, const int& steiner_count, const double& alpha, const double& beta);
 
 void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const double& beta, const double& lambda, map<Point, int>& good_ants,
 						 Polygon_2& polygon, const int& steiner_size);
 
-void ant_colony_optimization(CDT& cdt, const Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const double& xi, const double& psi, const double& lambda, const int& kappa, const int& L);
+void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L);
 
 #endif // ANT_COLONY_H
