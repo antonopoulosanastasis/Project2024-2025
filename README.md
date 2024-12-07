@@ -3,7 +3,7 @@
 -> Αντωνόπουλος Αναστάσιος ΑΜ:1115201900011
 -> Γαγάνης Χαράλαμπος ΑΜ:1115201900030
 
-Μεταγλώττιση:
+Οργάνωση του κώδικα:
 Όσον αφορά την οργάνωση του Project προσπαθήσαμε να προσεγγίσουμε όσο πιο πολύ μπορούμε την οργάνωση που υπήρχε στις διαφάνειες του φροντιστηρίου.
 Υπάρχει δηλαδή η δομή:
 
@@ -46,20 +46,21 @@ root/
 Μόνη εξαίρεση αποτελεί το αρχείο definitions.h που έχει όλα τα typedef που χρησιμοποιούνται καθώς και όλες τις βιβλιοθήκες που χρησιμοποιούνται παντού.
 
 Ο κώδικας των υλοποιήσεων μαζί με την main() βρίσκονται στο opt_triangulation.cpp.
-Στο directory includes/utils υπάρχουν όλα τα απαραίτητα declarations/implementations για συναρτήσεις που χρησιμοποιούνται από το test.cpp.
+Στο directory includes/utils υπάρχουν όλα τα απαραίτητα declarations/implementations για συναρτήσεις που χρησιμοποιούνται από το opt_triangulation.cpp.
 Με χρήση της CMake δημιουργείται το library Utils που χρησιμοποιείται στο τελικό εκτελέσιμο.
 
+Μεταγλώττιση:
 Για να δημιουργηθεί το Makefile του Project αρκεί να τρέξουμε την εντολή:
 
 cmake -DCGAL_DIR=/usr/lib/CGAL .
 
-στο root directory του project, δηλαδή στο ίδιο directory με το αρχείο test.cpp. Αυτή η εντολή θα δημιουργήσει το αρχείο Makefile το οποίο με την εντολή:
+στο root directory του project, δηλαδή στο ίδιο directory με το αρχείο opt_triangulation.cpp. Αυτή η εντολή θα δημιουργήσει το αρχείο Makefile το οποίο με την εντολή:
 
 make
 
 θα δημιουργήσει με τη σειρά του το εκτελέσιμο αρχείο. Το εκτελέσιμο αρχείο τρέχει με το εξής format:
 
-./opt_triangulation -i /path/to/input/json -o /path/to/output/json
+./opt_triangulation -i <path_to_input.json> -o <path_to_output.json>
 
 Περιγραφή της υλοποίησης:
 Αρχικά η υλοποίηση ξεκινάει με Constrained Delaunay Triangulation (CDT).
