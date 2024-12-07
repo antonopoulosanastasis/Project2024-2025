@@ -1,42 +1,55 @@
 {
-    "instance_uid": "test_16",
-    "num_points": 8,
+    "instance_uid": "test_3",
+    "num_points": 12,
     "points_x": [
         0,
-        1,
-        2,
-        3,
         4,
-        1,
-        3,
-        1
+        12,
+        12,
+        20,
+        16,
+        12,
+        8,
+        8,
+        0,
+        12,
+        12
     ],
     "points_y": [
         0,
+        0,
+        -6,
+        -3,
         3,
-        2,
+        3,
         6,
-        2,
-        1,
-        2,
-        2
+        3,
+        0,
+        6,
+        0,
+        3
     ],
     "region_boundary": [
         0,
-        4,
-        3,
+        1,
         2,
-        1
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
     ],
     "num_constraints": 2,
     "additional_constraints": [
         [
-            5,
-            6
+            6,
+            10
         ],
         [
-            4,
-            6
+            8,
+            10
         ]
     ],
     "method": "sa",
