@@ -88,28 +88,47 @@ make
 
 Στον φάκελο instances συμπεριλαμβάνονται κάποια από τα test instances που δόθηκαν και ο κώδικας συγκλίνει/μειώνει σημαντικά τις αμβλείες.
 
-instances που συγκλίνει/μειώνει:
+Αποτελέσματα:
 
-instance_2.json συγκλίνει (6 steiner). 
+	instance			Local Search		Simulated Annealing		Ant colony
+<obtuse, steiner>		<obtuse, steiner>	<obtuse, steiner>		<obtuse, steiner>
 
-instance_3.json συγκλίνει. (2 steiner).
+instance_2.json			
+	<2, 0>				<0 , 3>					<0 , 3>					<1, 1>
 
-instance_4.json μειώνει από 10 αμβλείες σε 1 (9 steiner). 
+instance_3.json
+	<4, 0>				<0, 3>					<0, 2>					<0, 4>
 
-instance_5.json μειώνει από 10 αμβλείες σε 4 (9 steiner). 
+instance_4.json
+	<10, 0>				<5, 30>					<3, 11>					<10, 0>
 
-instance_6.json μειώνει από 8 αμβλείες σε 3 (6 steiner). 
+instance_5.json
+	<10, 0>				<0, 13>					<0, 17>					<10, 0>
 
-instance_7.json συγκλίνει (4 steiner). 
+instance_test_1.json
+	<5, 0>				<0, 10>					<0, 5>					<0, 5>
 
-instance_test_4.json συγκλίνει (1 steiner).
+instance_test_2.json
+	<5, 0>				<0, 9>					<0, 4>					<0, 5>
 
-instance_test_5.json συγκλίνει (3 steiner).
+instance_test_3.json
+	<5, 0>				<0, 9>					<0, 5>					<0, 5>
 
-instance_test_6.json συγκλίνει (6 steiner).
+instance_test_4.json
+	<2, 0>				<0, 1>					<0, 1>					<0, 2>
 
-instance_test_7.json συγκλίνει (8 steiner)
+instance_test_5.json
+	<3, 0>				<0, 3>					<0, 3>					<0, 3>
 
-instance_test_8.json μειώνει από 5 αμβλείες σε 2 (5 steiner).
-
-instance_test_9.json μειώνει από 7 αμβλείες σε 1 (8 steiner).
+Τα παραπάνω τρέξανε με παραμέτρους:
+"parameters": {
+        "alpha": 4.0,
+        "beta": 0.8,
+        "xi": 1,
+        "psi": 5,
+        "L": 50,
+		"lambda": 0.6,
+		"kappa": 20
+	}
+Ωστόσο στο instance_4.json η local_search, αξίζει να σημειωθεί πως για αριθμό επαναλήψεων μεγαλύτερο του 35 αργεί.
+Αυτό οφείλεται στο γεγονός ότι σε κάθε επάναληψη απομονώνει τα obtuse faces.

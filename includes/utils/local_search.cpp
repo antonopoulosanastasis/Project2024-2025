@@ -30,9 +30,8 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					break;
 				}
 			}
-			Point c_insert = steiner_circumcenter_at_face(face_handles[i], polygon);
+			Point c_insert = steiner_circumcenter_at_face(cdt_circumcenter, face_handles[i], polygon);
 			if( !((c_insert.x() == 0.5) && (c_insert.y() == 0.5))) {
-				cdt_circumcenter.insert(c_insert);
 				int new_obtuse_count = count_obtuse_angles(cdt_circumcenter, polygon);
 				if (new_obtuse_count < best_obtuse_count) {
 					cdt = cdt_circumcenter;

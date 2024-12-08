@@ -141,8 +141,7 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 			break;
 		case 2:
 			// insert circumcenter
-			to_insert = steiner_circumcenter_at_face(face, polygon);
-			cdt.insert(to_insert);
+			to_insert = steiner_circumcenter_at_face(cdt, face, polygon);
 			break;
 		case 3:
 			// insert midpoint

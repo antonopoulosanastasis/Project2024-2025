@@ -15,6 +15,6 @@ void remove_faces_outside_boundary(vector<Face_handle>& face_vector, const Polyg
 
 Point insert_circumcenter(CDT& cdt, const Polygon_2& polygon);
 
-Point steiner_circumcenter_at_face(Face_handle& face, const Polygon_2& polygon);
+Point steiner_circumcenter_at_face(CDT& cdt, Face_handle& face, const Polygon_2& polygon);
 
 #endif // CIRCUMCENTER_H

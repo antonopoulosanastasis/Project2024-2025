@@ -11,7 +11,7 @@ Point choose_steiner(CDT& cdt, const Polygon_2& polygon, int option, Face_handle
 		case 2:
 			return steiner_midpoint_at_face(face, polygon);
 		case 3:
-			return steiner_circumcenter_at_face(face, polygon);
+			return steiner_circumcenter_at_face(cdt, face, polygon);
 		case 4:
 			return steiner_centroid_at_face(face, polygon);
 		case 5:
@@ -52,7 +52,7 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 			if(steiner_point == Point(0.5, 0.5)){
 				continue;
 			}
-			if(option != 5) { // if option is not adjacent
+			if(option != 5 && option != 3) { // if option is not adjacent or circumcenter
 				triangulation.insert(steiner_point);
 			}
 
