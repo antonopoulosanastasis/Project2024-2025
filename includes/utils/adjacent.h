@@ -5,6 +5,9 @@
 
 using namespace std;
 
+// Function that checks if a vertex is part of a constraint
+bool is_vertex_in_constraint(const CDT& cdt, Vertex_handle vertex);
+
 bool is_convex(const vector<Point>& points);
 
 Point calculate_polygon_center(const vector<Point>& points);

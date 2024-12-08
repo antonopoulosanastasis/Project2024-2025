@@ -16,6 +16,7 @@
 #include "local_search.h"
 #include "simulated_annealing.h"
 #include "ant_colony.h"
+#include "custom_cdt.h"
 
 namespace json = boost::json;
 using namespace std;

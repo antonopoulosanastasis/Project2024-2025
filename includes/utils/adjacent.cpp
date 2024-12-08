@@ -2,6 +2,22 @@
 #include "adjacent.h"
 #include "obtuse.h"
 #include "circumcenter.h"
+#include "custom_cdt.h"
+
+// Function that checks if a point is part of a constraint
+bool is_vertex_in_constraint(const CDT& cdt, Vertex_handle vertex) {
+	CDT::Edge_circulator ec = cdt.incident_edges(vertex), done(ec);
+	if (ec == 0) {
+		return false; // there is no edge connected to vertex->point()
+	}
+
+	do {
+		if (cdt.is_constrained(*ec)) {
+			return true; // Point is part of a constrained edge.
+		}
+	} while (++ec != done);
+	return false; // No constrained edge found.
+}
 
 // Utility to check if a polygon is convex
 bool is_convex(const vector<Point>& points) {
@@ -182,6 +198,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 						// Add points of the adjacent face to the obtuse polygon
 						for (int j = 0; j < 3; ++j) {
 							Point p = neighbor->vertex(j)->point();
+							// if point is not in polygon, add it
 							if (find(obtuse_polygon_points.begin(), obtuse_polygon_points.end(), p) == obtuse_polygon_points.end()) {
 								obtuse_polygon_points.push_back(p);
 							}
@@ -190,7 +207,8 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 						for (int j = 0; j < 3; ++j) {
 							Point p1 = neighbor->vertex(j)->point();
 							Point p2 = neighbor->vertex((j + 1) % 3)->point();
-							polygon_edges.emplace_back(p1, p2);
+							pair<Point, Point> edge = make_pair(p1, p2);
+							polygon_edges.emplace_back(edge);
 						}
 					}
 				}
@@ -217,16 +235,21 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			}
 			// Step 2: Mark the external edges as constraints
 			for (const auto& edge : external_edges) {
-				// cdt.insert_constraint(edge.first, edge.second);
+				cdt.insert_constraint(edge.first, edge.second);
 			}
 			// Step 3: Remove the polygon points from the CDT
 			for (auto& point : obtuse_polygon_points) {
 				// Find the vertex handle corresponding to the point
 				for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
 					if (v->point() == point) {
-						// Remove the vertex from the CDT
-						// cdt.remove(v);
-						break;
+						// if the point is part of a constraint, skip the removal
+						if(is_vertex_in_constraint(cdt, v)) {
+							break;
+						} else {
+							// Remove the vertex from the CDT
+							cdt.remove(v);
+							break;
+						}
 					}
 				}
 			}
@@ -234,11 +257,11 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			Point center = calculate_polygon_center(obtuse_polygon_points);
 
 			// Step 5: Insert the polygon center into the CDT
-			cdt.insert(center);
+			cdt.insert_no_flip(center);
 
 			// Step 6: Re-insert the original polygon points
 			for (const auto& point : obtuse_polygon_points) {
-				// cdt.insert(point);
+				cdt.insert(point);
 			}
 
 			// Step 7: Unmark the external edges
@@ -253,7 +276,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 
 					// If the edge matches the current external edge, remove the constraint
 					if (normalized_edge == edge) {
-						// cdt.remove_constraint(fh, i);
+						cdt.remove_constraint(fh, i);
 						break;
 					}
 				}
