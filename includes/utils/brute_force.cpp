@@ -91,6 +91,7 @@ void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& 
 		for (const string& step : best_sequence) {
 			cout << step << " ";
 		}
+		cout << endl;
 		apply_best_sequence(cdt, polygon, best_sequence, steiner);
 		cout << "\n";
 	} else {

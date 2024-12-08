@@ -215,7 +215,8 @@ int main(int argc, char* argv[])
 
 	if (!delaunay) {
 		cout << "Delaunay is false" << '\n';
-		brute_force_steiner_insertion(cdt, 6, polygon, steiner);
+		cout << "brute force for 4 steiner" << endl;
+		brute_force_steiner_insertion(cdt, 4, polygon, steiner);
 	}
 
 	vector<Point_2> steiner2;
