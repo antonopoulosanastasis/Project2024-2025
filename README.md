@@ -90,8 +90,8 @@ make
 
 Αποτελέσματα:
 
-	instance			Local Search		Simulated Annealing		Ant colony
-<obtuse, steiner>		<obtuse, steiner>	<obtuse, steiner>		<obtuse, steiner>
+	instance			Local Search			Simulated Annealing				Ant colony
+<obtuse, steiner>		<obtuse, steiner>			<obtuse, steiner>			<obtuse, steiner>
 
 instance_2.json			
 	<2, 0>				<0 , 3>					<0 , 3>					<1, 1>
