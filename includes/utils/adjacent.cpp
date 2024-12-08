@@ -137,7 +137,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 				Point center = calculate_polygon_center(obtuse_polygon_points);
 
 				// Step 5: Insert the polygon center into the CDT
-				cdt.insert(center);
+				cdt.insert_no_flip(center);
 
 				// Step 6: Re-insert the original polygon points
 				for (const auto& point : obtuse_polygon_points) {
@@ -148,11 +148,11 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 				for (const auto& edge : external_edges) {
 					auto fh = cdt.locate(CGAL::midpoint(edge.first, edge.second)); // Locate a face near the edge
 					for (int i = 0; i < 3; ++i) {
-						auto edge_vertices = std::make_pair(fh->vertex(i)->point(), fh->vertex((i + 1) % 3)->point());
+						auto edge_vertices = make_pair(fh->vertex(i)->point(), fh->vertex((i + 1) % 3)->point());
 						// Normalize the edge vertices
 						auto normalized_edge = edge_vertices.first < edge_vertices.second
-							? std::make_pair(edge_vertices.first, edge_vertices.second)
-							: std::make_pair(edge_vertices.second, edge_vertices.first);
+							? make_pair(edge_vertices.first, edge_vertices.second)
+							: make_pair(edge_vertices.second, edge_vertices.first);
 
 						// If the edge matches the current external edge, remove the constraint
 						if (normalized_edge == edge) {
@@ -270,11 +270,11 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			for (const auto& edge : external_edges) {
 				auto fh = cdt.locate(CGAL::midpoint(edge.first, edge.second)); // Locate a face near the edge
 				for (int i = 0; i < 3; ++i) {
-					auto edge_vertices = std::make_pair(fh->vertex(i)->point(), fh->vertex((i + 1) % 3)->point());
+					auto edge_vertices = make_pair(fh->vertex(i)->point(), fh->vertex((i + 1) % 3)->point());
 					// Normalize the edge vertices
 					auto normalized_edge = edge_vertices.first < edge_vertices.second
-						? std::make_pair(edge_vertices.first, edge_vertices.second)
-						: std::make_pair(edge_vertices.second, edge_vertices.first);
+						? make_pair(edge_vertices.first, edge_vertices.second)
+						: make_pair(edge_vertices.second, edge_vertices.first);
 
 					// If the edge matches the current external edge, remove the constraint
 					if (normalized_edge == edge) {
