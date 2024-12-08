@@ -8,15 +8,6 @@
 #include "obtuse.h"
 #include "simulated_annealing.h"	// for Energy computation
 
-/*void remove_non_obtuse_faces(vector<Face_handle>& faces) {
-	for(int i = 0; i < faces.size(); i++) {
-		int obtuse_index = find_obtuse_angle_index(faces.at(i));
-		if (obtuse_index == -1) {
-			faces.erase(faces.begin() + i);
-		}
-	}
-}*/
-
 // Calculates distance between two points
 double compute_distance(const Point& p1, const Point& p2) {
 	return sqrt(CGAL::to_double(CGAL::squared_distance(p1, p2)));
@@ -119,6 +110,11 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 	for(i = 0; i < 4; i++) {
 		probability[i] = double((pow(pheromone[i], xi) * pow(heuristic_values[i], psi))) / sum;
 	}
+	vector<double> cumulative;
+	cumulative.push_back(probability[0]);
+	for (i = 1; i < 4; i++) {
+		cumulative.push_back(cumulative[i - 1] + probability[i]);
+	}
 	// Create a random device to seed the random number generator
 	random_device rd;
 	// Create a Mersenne Twister pseudo-random generator initialized with rd
@@ -127,10 +123,8 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 	uniform_real_distribution<> distribution(0.0, 1.0);
 	// random stores a value in [0,1]
 	long double random = distribution(gen);
-	long double total_probability = 0.0;
 	for(i = 0; i < 4; i++) {
-		total_probability += probability[i];
-		if(random <= total_probability) {
+		if(random <= cumulative[i]) {
 			break;
 		}
 	}
@@ -171,6 +165,12 @@ double evaluate_triangulation(const CDT& cdt, Polygon_2& polygon, const int& ste
 void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const double& beta, const double& lambda, map<Point, int>& good_ants,
 						 Polygon_2& polygon, vector<Point_2>& steiner) {
 
+
+	// Apply evaporation globally
+	for (int i = 0; i < 4; i++) {
+		pheromone[i] = (1 - lambda) * pheromone[i];
+	}
+	// Check for reinforcement
 	for(auto it = good_ants.begin(); it != good_ants.end(); it++) {
 		double delta_tau = 0.0;
 		// check if current point was inserted in the triangulation
@@ -179,7 +179,7 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 			double evaluation = evaluate_triangulation(cdt, polygon, steiner.size(), alpha, beta);
 			delta_tau = 1 / (1 + evaluation);
 		}
-		pheromone[it->second] = (1 - lambda) * pheromone[it->second] + delta_tau;
+		pheromone[it->second] += delta_tau;
 	}
 }
 
@@ -187,7 +187,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L) {
 
 	
-	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
+	double pheromone[4] = {0.9, 1.1, 1.0, 1.0};
 	for(int cycle = 0; cycle < L; cycle++) {
 		map<Point, int> good_ants;
 		CDT cycle_best = cdt;
@@ -220,7 +220,6 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 			
 			// if the steiner point improved the triangulation, we store the point in a temporary vector
 			if(score <= cycle_best_score) {
-				cout << "found good ant in loop " << ant  << " of cycle: " << cycle << endl;
 				good_ants[steiner_point] = to_return;
 			}
 
@@ -234,7 +233,6 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 				cycle_best = temp;
 				cycle_best_score = score;
 				steiner.emplace_back(it->first);
-				cout << "added steiner " << endl;
 			}
 		}
 		cdt = cycle_best;
