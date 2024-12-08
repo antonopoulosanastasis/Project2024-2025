@@ -46,5 +46,5 @@ Point steiner_midpoint_at_face(Face_handle& face, const Polygon_2& polygon) {
 
 		return midpoint;
 	}
-	return Point();
+	return Point(0.5, 0.5);
 }

@@ -20,4 +20,6 @@ bool is_obtuse_triangulation(CDT cdt);
 // Helper function to find the index of the obtuse angle in a face
 int find_obtuse_angle_index(Face_handle f);
 
+void remove_non_obtuse_faces(vector<Face_handle>& faces);
+
 #endif // OBTUSE_H

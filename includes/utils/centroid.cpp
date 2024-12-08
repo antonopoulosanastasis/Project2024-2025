@@ -34,3 +34,16 @@ Point insert_centroid(CDT& cdt, const Polygon_2& polygon) {
 	}
 	return Point();
 }
+
+Point steiner_centroid_at_face(Face_handle& face, const Polygon_2& polygon) {
+	Point centroid = get_centroid(face);
+	if (is_point_outside_polygon(polygon, centroid)) {
+		return Point();
+	}
+	int obtuse_index = find_obtuse_angle_index(face);
+	if (obtuse_index != -1) {  // If there is an obtuse angle in the face
+		Point centroid = get_centroid(face);
+		return centroid;
+	}
+	return Point(0.5, 0.5);
+}

@@ -56,5 +56,5 @@ Point steiner_projection_at_face(Face_handle& face, const Polygon_2& polygon) {
 		return projection;
 
 	}
-	return Point();
+	return Point(0.5, 0.5);
 }

@@ -17,10 +17,14 @@ using namespace std;
 
 void simulated_annealing_optimization(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L);
 
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L);
+
 // Function to compute energy
 double compute_energy(CDT& cdt, const Polygon_2& polygon, int steiner_count, double alpha, double beta);
 
 // Function to pick steiner point method based on given number <option>
 Point choose_steiner_point(CDT& cdt, const Polygon_2& polygon, int option);
+
+Point choose_steiner(CDT& cdt, const Polygon_2& polygon, int option, Face_handle& face);
 
 #endif // SIMULATED_ANNEALING_H

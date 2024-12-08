@@ -262,5 +262,5 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			return center;
 		}
 	}
-	return Point();
+	return Point(0.5, 0.5);
 }

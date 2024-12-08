@@ -81,3 +81,12 @@ int find_obtuse_angle_index(Face_handle f) {
 	}
 	return -1;  // No obtuse angle
 }
+
+void remove_non_obtuse_faces(vector<Face_handle>& faces) {
+	for(int i = 0; i < faces.size(); i++) {
+		int obtuse_index = find_obtuse_angle_index(faces.at(i));
+		if (obtuse_index == -1) {
+			faces.erase(faces.begin() + i);
+		}
+	}
+}

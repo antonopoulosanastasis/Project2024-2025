@@ -222,14 +222,14 @@ int main(int argc, char* argv[])
 	if( method == "local" ) {
 		cout << "Using Local Search" << '\n';
     	int L = parameters.at("L").as_int64();
-		local_search_optimization(cdt, polygon, L, steiner2);
+		local_search_opt(cdt, polygon, L, steiner2);
 	}
 	else if ( method == "sa" ) {
 		cout << "Using Simulated Annealing" << '\n';
 		double alpha = parameters.at("alpha").as_double();
 		double beta = parameters.at("beta").as_double();
 		int L = parameters.at("L").as_int64();
-		simulated_annealing_optimization(cdt, polygon, steiner2, alpha, beta, L);
+		simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L);
 	} else if ( method == "ant" ) {
 		cout << "Using Ant Colony" << endl;
 		double alpha = parameters.at("alpha").as_double();
