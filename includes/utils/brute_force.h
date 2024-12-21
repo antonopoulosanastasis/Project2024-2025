@@ -12,10 +12,10 @@
 
 using namespace std;
 
-void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence, vector<Point_2>& steiner);
+void apply_best_sequence(CDT& cdt, Polygon_2& polygon,  const vector<string>& sequence, vector<Point_2>& steiner, map<Point, int>& index);
 
-void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_depth, int& min_obtuse_angles, vector<string>& best_sequence, vector<string>& current_sequence, int& min_steiner_points);
+void try_combinations(CDT& cdt, Polygon_2& polygon, int max_depth, int current_depth, int& min_obtuse_angles, vector<string>& best_sequence, vector<string>& current_sequence, int& min_steiner_points, map<Point, int>& index);
 
-void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon, vector<Point_2>& steiner);
+void brute_force_steiner_insertion(CDT& cdt, int max_steiner_points, Polygon_2& polygon, vector<Point_2>& steiner, map<Point, int>& index);
 
 #endif // BRUTE_FORCE_H

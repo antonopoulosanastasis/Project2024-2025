@@ -35,13 +35,13 @@
     ],
     "num_constraints": 0,
     "additional_constraints": [],
-    "method": "ant",
+    "method": "sa",
     "parameters": {
-        "alpha": 4.0,
-        "beta": 0.8,
+        "alpha": 2.0,
+        "beta": 1.0,
         "xi": 1,
         "psi": 5,
-        "L": 50,
+        "L": 100,
 		"lambda": 0.6,
 		"kappa": 20
     },

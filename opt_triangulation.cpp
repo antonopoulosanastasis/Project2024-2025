@@ -43,16 +43,6 @@ vector<pair<int, int>> deserialize_constraints(const json::array& json_constrain
 	return constraints;
 }
 
-// Function to create a map of vertex handles to integer indexes
-map<Vertex_handle, int> create_vertex_indices(const CDT& cdt) {
-	map<Vertex_handle, int> vertex_indices;
-	int index = 0;
-	for (auto v = cdt.finite_vertices_begin(); v != cdt.finite_vertices_end(); ++v) {
-		vertex_indices[v] = index++;
-	}
-	return vertex_indices;
-}
-
 string rational_to_string(const K::FT& coord) {
 	string to_return;
 	auto exact_coord = CGAL::exact(coord);
@@ -88,7 +78,7 @@ string rational_to_string(const K::FT& coord) {
 } 
 
 // Function to create output.json
-void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Vertex_handle, int>& vertex_indices, const Polygon_2 polygon, int obtuse_count, boost::json::string method, boost::json::object parameters) {
+void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Point, int>& vertex_indices, const Polygon_2 polygon, int obtuse_count, boost::json::string method, boost::json::object parameters) {
 	json::object json_output;
 	json::array steiner_points_x, steiner_points_y, edge_array;
 	vector<pair<int, int>> edges;
@@ -104,9 +94,11 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	for (auto edge = cdt.edges_begin(); edge != cdt.edges_end(); ++edge) {
 		Vertex_handle v1 = edge->first->vertex(cdt.cw(edge->second));
 		Vertex_handle v2 = edge->first->vertex(cdt.ccw(edge->second));
+		Point p1 = v1->point();
+		Point p2 = v2->point();
 
-		int index1 = vertex_indices.at(v1);
-		int index2 = vertex_indices.at(v2);
+		int index1 = vertex_indices.at(p1);
+		int index2 = vertex_indices.at(p2);
 
 		// Calculate the midpoint of the edge
 		Point_2 midpoint = CGAL::midpoint(v1->point(), v2->point());
@@ -195,9 +187,12 @@ int main(int argc, char* argv[])
 		cdt.insert_constraint(polygon[i], polygon[(i + 1) % polygon.size()]);
 	}
 
+	// Initialize point indexes
+	map<Point, int> vertex_indices;
 	// Insert points into the triangulation 
 	for (const Point& p : points) {
 		cdt.insert(p);
+		vertex_indices[p] = vertex_indices.size();
 	}
 
 	// Insert constrained edges based on the provided indices
@@ -216,7 +211,7 @@ int main(int argc, char* argv[])
 	if (!delaunay) {
 		cout << "Delaunay is false" << '\n';
 		cout << "brute force for 4 steiner" << endl;
-		brute_force_steiner_insertion(cdt, 4, polygon, steiner);
+		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
 	}
 
 	vector<Point_2> steiner2;
@@ -224,14 +219,14 @@ int main(int argc, char* argv[])
 	if( method == "local" ) {
 		cout << "Using Local Search" << '\n';
     	int L = parameters.at("L").as_int64();
-		local_search_opt(cdt, polygon, L, steiner2);
+		local_search_opt(cdt, polygon, L, steiner2, vertex_indices);
 	}
 	else if ( method == "sa" ) {
 		cout << "Using Simulated Annealing" << '\n';
 		double alpha = parameters.at("alpha").as_double();
 		double beta = parameters.at("beta").as_double();
 		int L = parameters.at("L").as_int64();
-		simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L);
+		simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
 	} else if ( method == "ant" ) {
 		cout << "Using Ant Colony" << endl;
 		double alpha = parameters.at("alpha").as_double();
@@ -241,7 +236,7 @@ int main(int argc, char* argv[])
 		double lambda = parameters.at("lambda").as_double();
 		int kappa = parameters.at("kappa").as_int64();
 		int L = parameters.at("L").as_int64();
-		ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L);
+		ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
 	} else {
 		throw invalid_argument("Invalid minimization option");
 	}
@@ -249,8 +244,6 @@ int main(int argc, char* argv[])
 	int obtuse_count = count_obtuse_angles(cdt, polygon);
 
 	cout << "Obtuse angle count: "<< obtuse_count << '\n';
-
-	map<Vertex_handle, int> vertex_indices = create_vertex_indices(cdt);
 
 	steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
 

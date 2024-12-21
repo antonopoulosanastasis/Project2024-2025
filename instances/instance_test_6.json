@@ -1,5 +1,5 @@
 {
-    "instance_uid": "test_6",
+	"instance_uid": "test_6",
     "num_points": 7,
     "points_x": [
         192,
@@ -28,13 +28,13 @@
     ],
     "num_constraints": 0,
     "additional_constraints": [],
-    "method": "ant",
+    "method": "local",
     "parameters": {
         "alpha": 4.0,
         "beta": 0.8,
         "xi": 1,
         "psi": 5,
-        "L": 50,
+        "L": 10,
 		"lambda": 0.6,
 		"kappa": 20
     },

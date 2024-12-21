@@ -183,7 +183,7 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 }
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L) {
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index) {
 
 	
 	double pheromone[4] = {0.9, 1.1, 1.0, 1.0};
@@ -232,6 +232,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 				cycle_best = temp;
 				cycle_best_score = score;
 				steiner.emplace_back(it->first);
+				index[it->first] = index.size();
 			}
 		}
 		cdt = cycle_best;

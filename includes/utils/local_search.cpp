@@ -1,6 +1,6 @@
 #include "local_search.h"
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner) {
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index) {
 	int iterations = 0;
 	int obtuse_count;
 	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
@@ -26,6 +26,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					cdt = cdt_midpoint;
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(m_insert);
+					index[m_insert] = index.size();
 					cout << "Inserted midpoint at iteration " << iterations << endl;
 					break;
 				}
@@ -37,6 +38,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					cdt = cdt_circumcenter;
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(c_insert);
+					index[c_insert] = index.size();
 					cout << "Inserted circumcenter at iteration " << iterations << endl;
 					break;
 				}
@@ -49,6 +51,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					cdt = cdt_centroid;
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(ce_insert);
+					index[ce_insert] = index.size();
 					cout << "Inserted centroid at iteration " << iterations << endl;
 					break;
 				}
@@ -61,6 +64,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					cdt = cdt_projection;
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(p_insert);
+					index[p_insert] = index.size();
 					cout << "Inserted projection at iteration " << iterations << endl;
 					break;
 				}
@@ -72,6 +76,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					cdt = cdt_adjacent;
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(a_insert);
+					index[a_insert] = index.size();
 					cout << "Inserted adjacent at iteration " << iterations << endl;
 					break;
 				}

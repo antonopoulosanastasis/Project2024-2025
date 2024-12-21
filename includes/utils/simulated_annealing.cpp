@@ -21,7 +21,7 @@ Point choose_steiner(CDT& cdt, const Polygon_2& polygon, int option, Face_handle
 	}
 }
 
-void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L) {
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index) {
 	double energy = compute_energy(cdt, polygon, 0, alpha, beta);
 	double temperature = 1.0;
 
@@ -69,6 +69,7 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 				cdt = triangulation;
 				// Store inserted steiner in vector
 				steiner.emplace_back(steiner_point);
+				index[steiner_point] = index.size();
 				break;
 			}
 		}

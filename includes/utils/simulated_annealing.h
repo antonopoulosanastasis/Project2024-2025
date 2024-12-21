@@ -15,7 +15,7 @@
 
 using namespace std;
 
-void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L);
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index);
 
 // Function to compute energy
 double compute_energy(CDT& cdt, const Polygon_2& polygon, int steiner_count, double alpha, double beta);

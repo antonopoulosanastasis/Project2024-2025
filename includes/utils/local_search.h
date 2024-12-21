@@ -13,6 +13,6 @@
 
 using namespace std;
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner);
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index);
 
 #endif // LOCAL_SEARCH_H
