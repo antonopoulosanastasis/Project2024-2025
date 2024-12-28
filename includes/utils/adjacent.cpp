@@ -33,6 +33,38 @@ bool is_convex(const vector<Point>& points) {
 	return true;
 }
 
+bool is_convex_polygon(const Polygon_2& polygon) {
+	if (!polygon.is_simple()) {
+		return false; // Non-simple polygons are not convex
+	}
+
+	int n = polygon.size();
+	if (n < 3) {
+		return false; // A polygon must have at least 3 vertices
+	}
+
+	bool is_convex = true;
+	for (int i = 0; i < n; i++) {
+		const Point& p1 = polygon[i];
+		const Point& p2 = polygon[(i + 1) % n];
+		const Point& p3 = polygon[(i + 2) % n];
+
+		// Compute the cross product of vectors (p2 - p1) and (p3 - p2)
+		K::Vector_2 v1 = p2 - p1;
+		K::Vector_2 v2 = p3 - p2;
+
+		auto cross_product = v1.x() * v2.y() - v1.y() * v2.x();
+
+		// Check the sign of the cross product
+		if (cross_product < 0) {
+			is_convex = false;
+			break;
+		}
+	}
+
+	return is_convex;
+}
+
 // Utility to calculate the center of a polygon
 Point calculate_polygon_center(const vector<Point>& points) {
 	K::FT x = 0, y = 0;

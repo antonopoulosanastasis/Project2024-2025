@@ -28,7 +28,7 @@
     ],
     "num_constraints": 0,
     "additional_constraints": [],
-    "method": "local",
+    "method": "ant",
     "parameters": {
         "alpha": 4.0,
         "beta": 0.8,

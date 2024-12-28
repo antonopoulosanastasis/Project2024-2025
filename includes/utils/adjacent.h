@@ -10,6 +10,8 @@ bool is_vertex_in_constraint(const CDT& cdt, Vertex_handle vertex);
 
 bool is_convex(const vector<Point>& points);
 
+bool is_convex_polygon(const Polygon_2& polygon);
+
 Point calculate_polygon_center(const vector<Point>& points);
 
 Point insert_adjacent(CDT& cdt, const Polygon_2& polygon);
