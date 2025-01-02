@@ -17,6 +17,7 @@
 #include "simulated_annealing.h"
 #include "ant_colony.h"
 #include "custom_cdt.h"
+#include "case_identification.h"
 
 namespace json = boost::json;
 using namespace std;
@@ -126,31 +127,6 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 
 	ofstream file(filename);
 	file << json::serialize(json_output);
-}
-
-string identify_case(const Polygon_2& polygon, const int& constraint_count, const vector<pair<int, int>>& constraints) {
-	// Convex boundary cases (A-C)
-	if(is_convex_polygon(polygon)) {
-		// Case A: Convex boundary without constraints.
-		if(constraint_count == 0) {
-			return "A";
-		}
-		// Further check for cases B and C
-		for (const auto& constraint : constraints) {
-			Point p1 = polygon[constraint.first];
-			Point p2 = polygon[constraint.second];
-			if (!polygon.bounded_side(p1) || !polygon.bounded_side(p2)) {
-				// Case C: Convex boundary with inside constraints.
-				return "C";
-			}
-		}
-		// Case B: Convex boundary with open constraints.
-		return "B";
-	}
-	// Non-convex boundary cases (D-E)
-	if(constraint_count == 0 && edges_aligned())
-
-
 }
 
 int main(int argc, char* argv[])
