@@ -66,7 +66,7 @@ bool is_convex_polygon(const Polygon_2& polygon) {
 }
 
 // Utility to calculate the center of a polygon
-Point calculate_polygon_center(const vector<Point>& points) {
+Point calculate_polygon_center(const Polygon_2& points) {
 	K::FT x = 0, y = 0;
 	for (const auto& point : points) {
 		x += point.x();
@@ -89,7 +89,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 	for (Face_handle f : face_handles) {
 		int obtuse_index = find_obtuse_angle_index(f);
 		if (obtuse_index != -1) { // Current face has an obtuse angle
-			vector<Point> obtuse_polygon_points;
+			Polygon_2 obtuse_polygon_points;
 			vector<pair<Point, Point>> polygon_edges;
 
 			// Add points of the current face to the obtuse polygon
@@ -130,7 +130,7 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 				}
 			}
 			// Check if the formed polygon is convex
-			if (is_convex(obtuse_polygon_points)) {
+			if (is_convex_polygon(obtuse_polygon_points)) {
 				map<pair<Point, Point>, int> edge_count;
 				// Count occurrences of each edge in the polygon_edges
 				for (const auto& edge : polygon_edges) {
@@ -206,7 +206,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 	
 	int obtuse_index = find_obtuse_angle_index(f);
 	if (obtuse_index != -1) { // Current face has an obtuse angle
-		vector<Point> obtuse_polygon_points;
+		Polygon_2 obtuse_polygon_points;
 		vector<pair<Point, Point>> polygon_edges;
 
 		// Add points of the current face to the obtuse polygon
@@ -249,7 +249,7 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 			}
 		}
 		// Check if the formed polygon is convex
-		if (is_convex(obtuse_polygon_points)) {
+		if (is_convex_polygon(obtuse_polygon_points)) {
 			map<pair<Point, Point>, int> edge_count;
 			// Count occurrences of each edge in the polygon_edges
 			for (const auto& edge : polygon_edges) {

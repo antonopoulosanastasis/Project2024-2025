@@ -12,7 +12,7 @@ bool is_convex(const vector<Point>& points);
 
 bool is_convex_polygon(const Polygon_2& polygon);
 
-Point calculate_polygon_center(const vector<Point>& points);
+Point calculate_polygon_center(const Polygon_2& points);
 
 Point insert_adjacent(CDT& cdt, const Polygon_2& polygon);
 

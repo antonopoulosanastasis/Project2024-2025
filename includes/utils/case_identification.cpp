@@ -102,4 +102,5 @@ string identify_case(const CDT& cdt, const Polygon_2& polygon, const int& constr
 		// Case B: Convex boundary with open constraints.
 		return "B";
 	}
+	return "A";
 }

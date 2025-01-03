@@ -66,7 +66,7 @@ double radius_to_height_ratio(Face_handle& face) {
 bool has_adjacent_obtuse_faces(CDT& cdt, Face_handle& f, Polygon_2& polygon) {
 
 	// Add points of the current face to the obtuse polygon
-	vector<Point> obtuse_polygon_points;
+	Polygon_2 obtuse_polygon_points;
 	for (int i = 0; i < 3; ++i) {
 		obtuse_polygon_points.push_back(f->vertex(i)->point());
 	}
@@ -97,7 +97,7 @@ bool has_adjacent_obtuse_faces(CDT& cdt, Face_handle& f, Polygon_2& polygon) {
 			}
 		}
 	}
-    return is_convex(obtuse_polygon_points);
+    return is_convex_polygon(obtuse_polygon_points);
 }
 
 // Calculate heuristic value for every steiner option
