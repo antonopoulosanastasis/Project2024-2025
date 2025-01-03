@@ -279,6 +279,6 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		}
 
 		cdt = cycle_best;
-		update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);
+		//update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);
 	}
 }

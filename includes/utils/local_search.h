@@ -9,6 +9,7 @@
 #include "obtuse.h"
 #include "centroid.h"
 #include "adjacent.h"
+#include "random_steiner.h"
 #include "ant_colony.h"
 
 using namespace std;

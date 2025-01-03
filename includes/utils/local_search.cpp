@@ -17,6 +17,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 			CDT cdt_circumcenter = cdt;
 			CDT cdt_centroid = cdt;
 			CDT cdt_adjacent = cdt;
+			CDT cdt_random = cdt;
 			CDT best_triangulation = cdt;
 			Point m_insert = steiner_midpoint_at_face(face_handles[i], polygon);
 			if( !((m_insert.x() == 0.5) && (m_insert.y() == 0.5)) ) {
@@ -78,6 +79,20 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(a_insert);
 					index[a_insert] = index.size();
 					cout << "Inserted adjacent at iteration " << iterations << endl;
+					break;
+				}
+			}
+			Point r_insert = steiner_random_at_face(face_handles[i], polygon);
+			cout << "rand insert" << endl;
+			if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
+				cdt_random.insert(r_insert);
+				int new_obtuse_count = count_obtuse_angles(cdt_random, polygon);
+				if (new_obtuse_count < best_obtuse_count) {
+					cdt = cdt_random;
+					best_obtuse_count = new_obtuse_count;
+					steiner.emplace_back(r_insert);
+					index[r_insert] = index.size();
+					cout << "Inserted random at iteration " << iterations << endl;
 					break;
 				}
 			}
