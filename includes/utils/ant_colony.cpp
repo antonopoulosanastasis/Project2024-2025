@@ -63,23 +63,51 @@ double radius_to_height_ratio(Face_handle& face) {
 }
 
 // Check if adjacent method should be prioritized
-bool has_adjacent_obtuse_faces(Face_handle& face, Polygon_2& polygon) {
-	for (int i = 0; i < 3; i++) {
-		Face_handle neighbor = face->neighbor(i);
-        // If neighbor is within the boundary and obtuse, return true
-        if (find_obtuse_angle_index(neighbor) != -1) {
-            return true;
-        }
-    }
-    return false;
+bool has_adjacent_obtuse_faces(CDT& cdt, Face_handle& f, Polygon_2& polygon) {
+
+	// Add points of the current face to the obtuse polygon
+	vector<Point> obtuse_polygon_points;
+	for (int i = 0; i < 3; ++i) {
+		obtuse_polygon_points.push_back(f->vertex(i)->point());
+	}
+	// Check adjacent faces for obtuse angles
+	for (int i = 0; i < 3; ++i) {
+		Face_handle neighbor = f->neighbor(i);
+		if (!cdt.is_infinite(neighbor)) {
+			// Check if neighbor is inside boundary and has an obtuse angle
+			bool neighbor_in_boundary = true;
+			for (int j = 0; j < 3; ++j) {
+				if (!polygon.has_on_bounded_side(neighbor->vertex(j)->point())) {
+					neighbor_in_boundary = false;
+					break;
+				}
+			}
+			if (neighbor_in_boundary) {
+				int neighbor_obtuse_index = find_obtuse_angle_index(neighbor);
+				if (neighbor_obtuse_index != -1) {
+					// Add points of the adjacent face to the obtuse polygon
+					for (int j = 0; j < 3; ++j) {
+						Point p = neighbor->vertex(j)->point();
+						// if point is not in polygon, add it
+						if (find(obtuse_polygon_points.begin(), obtuse_polygon_points.end(), p) == obtuse_polygon_points.end()) {
+							obtuse_polygon_points.push_back(p);
+						}
+					}
+				}
+			}
+		}
+	}
+    return is_convex(obtuse_polygon_points);
 }
 
 // Calculate heuristic value for every steiner option
-vector<double> heuristic(Face_handle& face, Polygon_2& polygon) {
+vector<double> heuristic(CDT& cdt, Face_handle& face, Polygon_2& polygon) {
 	vector<double> heuristic;
 	double h[4];
 	double r = radius_to_height_ratio(face);
-	if(has_adjacent_obtuse_faces(face, polygon)) {
+	CDT cdt_copy = cdt;
+	if(steiner_adjacent_at_face(cdt_copy, face, polygon) != Point(0.5, 0.5)) {
+		cout << "Adjacent is 1" << endl;
 		h[0] = 1.0;
 	} else {
 		h[0] = 0.0;
@@ -98,7 +126,7 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 	double probability[4];
 	vector<double> heuristic_values;
 
-	heuristic_values = heuristic(face, polygon);
+	heuristic_values = heuristic(cdt, face, polygon);
 	// Now heuristic_values has heuristic values for every steiner option
 
 	// Stores the total value of the sum (T_i^x * H_i^y) for i in steiner options in sum
@@ -136,15 +164,18 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 			break;
 		case 1:
 			// insert projection
+			cout << "Projection" << endl;
 			to_insert = steiner_projection_at_face(face, polygon);
 			cdt.insert(to_insert);		
 			break;
 		case 2:
 			// insert circumcenter
+			cout << "Circumcenter" << endl;
 			to_insert = steiner_circumcenter_at_face(cdt, face, polygon);
 			break;
 		case 3:
 			// insert midpoint
+			cout << "Midpoint" << endl;
 			to_insert = steiner_midpoint_at_face(face, polygon);
 			cdt.insert(to_insert);
 			break;
@@ -186,7 +217,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index) {
 
 	
-	double pheromone[4] = {0.9, 1.1, 1.0, 1.0};
+	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
 	for(int cycle = 0; cycle < L; cycle++) {
 		map<Point, int> good_ants;
 		CDT cycle_best = cdt;

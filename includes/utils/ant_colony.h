@@ -15,10 +15,10 @@ double longest_side_height(Face_handle& face);
 double radius_to_height_ratio(Face_handle& face);
 
 // Check if adjacent method should be prioritized
-bool has_adjacent_obtuse_faces(Face_handle& face, Polygon_2& polygon);
+bool has_adjacent_obtuse_faces(CDT& cdt, Face_handle& face, Polygon_2& polygon);
 
 // Calculate heuristic value for every steiner option
-vector<double>  heuristic(Face_handle& face, const Polygon_2& polygon);
+vector<double>  heuristic(CDT& cdt, Face_handle& face, const Polygon_2& polygon);
 
 Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, const int& xi, const int& psi, double pheromone[], int& to_return);
 
