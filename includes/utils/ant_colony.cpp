@@ -112,7 +112,6 @@ vector<double> heuristic(CDT& cdt, Face_handle& face, Polygon_2& polygon) {
 	double r = radius_to_height_ratio(face);
 	CDT cdt_copy = cdt;
 	if(steiner_adjacent_at_face(cdt_copy, face, polygon) != Point(0.5, 0.5)) {
-		cout << "Adjacent is 1" << endl;
 		h[0] = 1.0;
 	} else {
 		h[0] = 0.0;
@@ -169,18 +168,15 @@ Point improve_triangulation(CDT& cdt, Face_handle& face, Polygon_2& polygon, con
 			break;
 		case 1:
 			// insert projection
-			cout << "Projection" << endl;
 			to_insert = steiner_projection_at_face(face, polygon);
 			cdt.insert(to_insert);		
 			break;
 		case 2:
 			// insert circumcenter
-			cout << "Circumcenter" << endl;
 			to_insert = steiner_circumcenter_at_face(cdt, face, polygon);
 			break;
 		case 3:
 			// insert midpoint
-			cout << "Midpoint" << endl;
 			to_insert = steiner_midpoint_at_face(face, polygon);
 			cdt.insert(to_insert);
 			break;
