@@ -82,6 +82,11 @@ bool has_adjacent_obtuse_faces(CDT& cdt, Face_handle& f, Polygon_2& polygon) {
 					break;
 				}
 			}
+			Point centroid = get_centroid(neighbor);
+			if (is_point_outside_polygon(polygon, centroid)) {
+                neighbor_in_boundary = false;
+				break;
+            }
 			if (neighbor_in_boundary) {
 				int neighbor_obtuse_index = find_obtuse_angle_index(neighbor);
 				if (neighbor_obtuse_index != -1) {

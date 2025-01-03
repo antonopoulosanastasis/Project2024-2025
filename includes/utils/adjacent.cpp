@@ -109,6 +109,11 @@ Point insert_adjacent(CDT& cdt, const Polygon_2& polygon) {
 							break;
 						}
 					}
+					Point centroid = get_centroid(neighbor);
+					if (is_point_outside_polygon(polygon, centroid)) {
+                        neighbor_in_boundary = false;
+						break;
+                    }
 					if (neighbor_in_boundary) {
 						int neighbor_obtuse_index = find_obtuse_angle_index(neighbor);
 						if (neighbor_obtuse_index != -1) {
@@ -225,6 +230,11 @@ Point steiner_adjacent_at_face(CDT& cdt, Face_handle& f, const Polygon_2& polygo
 						neighbor_in_boundary = false;
 						break;
 					}
+				}
+				Point centroid = get_centroid(neighbor);
+				if(is_point_outside_polygon(polygon, centroid)) {
+					neighbor_in_boundary = false;
+					break;
 				}
 				if (neighbor_in_boundary) {
 					int neighbor_obtuse_index = find_obtuse_angle_index(neighbor);
