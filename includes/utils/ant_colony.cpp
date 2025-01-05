@@ -223,8 +223,8 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 	
 	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
 	// Assume random engine setup
-	std::random_device rd;
-	std::mt19937 gen(rd());
+	random_device rd;
+	mt19937 gen(rd());
 	for (int cycle = 0; cycle < L; cycle++) {
 		map<Point, int> good_ants; // Tracks points and their associated methods
 		CDT cycle_best = cdt;
@@ -241,7 +241,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		// Map to track the best result for each face
 		unordered_map<Face_handle, tuple<Point, double, int>> face_best; // {Face_handle -> {Best Steiner Point, Best Score, Method}}
 
-		std::uniform_int_distribution<> dist(0, face_handles.size() - 1); // Random face selector
+		uniform_int_distribution<> dist(0, face_handles.size() - 1); // Random face selector
 
 		for (int ant = 0; ant < kappa; ant++) {
 			if (face_handles.empty()) {
@@ -261,7 +261,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 			double score = evaluate_triangulation(ant_triangulation, polygon, steiner.size() + 1, alpha, beta);
 
 			// If the face is not yet in the map or this ant achieved a better score, update the map
-			if (face_best.find(face) == face_best.end() || score < std::get<1>(face_best[face])) {
+			if (face_best.find(face) == face_best.end() || score < get<1>(face_best[face])) {
 				face_best[face] = {steiner_point, score, to_return};
 			}
 		}
@@ -269,9 +269,9 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		// Save the best Steiner points for each face and update good_ants
 		for (const auto &entry : face_best) {
 			Face_handle face = entry.first;
-			Point steiner_point = std::get<0>(entry.second);
-			double score = std::get<1>(entry.second);
-			int method = std::get<2>(entry.second);
+			Point steiner_point = get<0>(entry.second);
+			double score = get<1>(entry.second);
+			int method = get<2>(entry.second);
 
 			CDT temp = cycle_best;
 			temp.insert(steiner_point);
