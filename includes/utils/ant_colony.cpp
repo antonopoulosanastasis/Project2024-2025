@@ -1,6 +1,9 @@
 #include <cmath>
 #include <random>
 #include <map>
+#include <unordered_map>
+#include <vector>
+#include <limits>
 
 #include "circumcenter.h"
 #include "ant_colony.h"
@@ -219,12 +222,15 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 
 	
 	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
-	for(int cycle = 0; cycle < L; cycle++) {
-		map<pair<int, double>, Point> good_ants;
+	// Assume random engine setup
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	for (int cycle = 0; cycle < L; cycle++) {
+		map<Point, int> good_ants; // Tracks points and their associated methods
 		CDT cycle_best = cdt;
 		double cycle_best_score = evaluate_triangulation(cycle_best, polygon, steiner.size(), alpha, beta);
 
-		// face_handles vector will store faces inside given boundary
+		// Collect finite faces
 		vector<Face_handle> face_handles;
 		for (Face_handle face : cdt.finite_face_handles()) {
 			face_handles.push_back(face);
@@ -232,53 +238,58 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		remove_faces_outside_boundary(face_handles, polygon);
 		remove_non_obtuse_faces(face_handles);
 
-		// Map each face to a vector of ants that improved it
-        map<Face_handle, vector<pair<int, double>>> face_to_ants;
+		// Map to track the best result for each face
+		unordered_map<Face_handle, tuple<Point, double, int>> face_best; // {Face_handle -> {Best Steiner Point, Best Score, Method}}
 
-		for (int ant = 0; ant < kappa; ant ++){
-			// Create temporary triangulation
-			CDT ant_triangulation = cycle_best;
-			
-			// Pick an obtuse face randomly from the available faces
-			int random_face_index = rand() % face_handles.size();
-			Face_handle face = face_handles[random_face_index];
+		std::uniform_int_distribution<> dist(0, face_handles.size() - 1); // Random face selector
 
-			// insert steiner point and store method used in to_return
+		for (int ant = 0; ant < kappa; ant++) {
+			if (face_handles.empty()) {
+				break;
+			}
+
 			int to_return;
+			CDT ant_triangulation = cycle_best;
+
+			// Randomly select a face for the ant
+			Face_handle face = face_handles[dist(gen)];
+
+			// Attempt to improve the triangulation
 			Point steiner_point = improve_triangulation(ant_triangulation, face, polygon, xi, psi, pheromone, to_return);
 
-			// evaluate triangulation
+			// Evaluate the triangulation
 			double score = evaluate_triangulation(ant_triangulation, polygon, steiner.size() + 1, alpha, beta);
-			
-			// If the steiner point improved the triangulation, store it
-			if (score <= cycle_best_score) {
-				face_to_ants[face].emplace_back(ant, score);
-				good_ants[{ant, score}] = steiner_point;
+
+			// If the face is not yet in the map or this ant achieved a better score, update the map
+			if (face_best.find(face) == face_best.end() || score < std::get<1>(face_best[face])) {
+				face_best[face] = {steiner_point, score, to_return};
 			}
 		}
 
-		// Process each face and retain the best ant for each face
-		for (const auto& entry : face_to_ants) {
+		// Save the best Steiner points for each face and update good_ants
+		for (const auto &entry : face_best) {
 			Face_handle face = entry.first;
-			const auto& ants = entry.second;
-
-			auto best_ant = *min_element(ants.begin(), ants.end(), [](const auto& a, const auto& b) {
-				return a.second < b.second;
-			});
+			Point steiner_point = std::get<0>(entry.second);
+			double score = std::get<1>(entry.second);
+			int method = std::get<2>(entry.second);
 
 			CDT temp = cycle_best;
-			Point best_steiner_point = good_ants.at(best_ant);
+			temp.insert(steiner_point);
 
-			double score = evaluate_triangulation(temp, polygon, steiner.size() + 1, alpha, beta);
-			if (score <= cycle_best_score) {
+			double temp_score = evaluate_triangulation(temp, polygon, steiner.size() + 1, alpha, beta);
+
+			// If the new triangulation is better, update cycle_best and good_ants
+			if (temp_score <= cycle_best_score) {
 				cycle_best = temp;
-				cycle_best_score = score;
-				steiner.emplace_back(best_steiner_point);
-				index[best_steiner_point] = index.size();
+				cycle_best_score = temp_score;
+				steiner.emplace_back(steiner_point);
+				index[steiner_point] = index.size();
+				good_ants[steiner_point] = method; // Record the method used for pheromone updates
 			}
 		}
 
+		// Update the CDT and pheromones
 		cdt = cycle_best;
-		//update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);
+		update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);
 	}
 }
