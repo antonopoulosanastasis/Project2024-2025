@@ -2,64 +2,85 @@
 
 // Function to build the adjacency list
 // This graph approach will be used to search with DFS for a cycle (case C)
-map<int, vector<int>> build_adjacency_list(const vector< pair<int, int>>& constraints) {
-	map<int, vector<int>> adjacency_list;
+map<int, vector<pair<int, bool>>> build_adjacency_list(const vector<pair<pair<int, int>, bool>>& constraints) {
+	map<int, vector<pair<int, bool>>> adjacency_list;
 
 	for (const auto& constraint : constraints) {
-		// Add both directions for the undirected graph
-		adjacency_list[constraint.first].push_back(constraint.second);
-		adjacency_list[constraint.second].push_back(constraint.first);
+		int node1 = constraint.first.first;   // First node in the constraint
+		int node2 = constraint.first.second;  // Second node in the constraint
+		bool is_inner = constraint.second;    // True if it's an inner constraint
+
+		// Add the edge to the adjacency list for both directions
+		adjacency_list[node1].emplace_back(node2, is_inner);
+		adjacency_list[node2].emplace_back(node1, is_inner);
 	}
 
 	return adjacency_list;
 }
 
-// Function to detect a cycle in the graph using DFS with a stack
-bool detect_cycle(const map<int, vector<int>>& adjacency_list, int start_node) {
-	unordered_set<int> visited;		// set to keep all visited nodes in
-	stack<pair<int, int>> stack; 	// Pair of (current node, parent node)
+// Function to detect inner or mixed cycles for a component
+bool detect_inner_or_mixed_cycle_for_component(const map<int, vector<pair<int, bool>>>& adjacency_list, int& start_node, unordered_set<int>& visited) {
+	stack<pair<int, int>> stack; 		// Pair of (current node, parent node)
+	unordered_set<int> local_visited; 	// Tracks nodes locally for cycles
+	bool has_inner_constraint = false;	// Tracks if cycle has an inner constraint
+	bool has_cycle = false; 			// Tracks if any cycle is detected
 
-	// Initialize the stack with the starting node
-	stack.push({start_node, -1});
+	stack.push(make_pair(start_node, -1));
 
 	while (!stack.empty()) {
-		auto [current, parent] = stack.top();
+		pair<int, int> current_pair = stack.top();
+		int current = current_pair.first;
+		int parent = current_pair.second;
 		stack.pop();
 
-		// If the node is already visited, visited.count(current node) 
-		// should return true, which means we've detected a cycle
-		if (visited.count(current)) {
-			return true;
+		// If the node is already in the local_visited set, a cycle is detected
+		if (local_visited.count(current)) {
+			has_cycle = true;
+			// Check for inner constraints in the cycle
+			for (size_t i = 0; i < adjacency_list.at(current).size(); ++i) {
+				int neighbor = adjacency_list.at(current)[i].first;
+				bool is_inner = adjacency_list.at(current)[i].second;
+				// If neighbour is not parent node and is already visited
+				// we have to check if the edge connecting current and neighbor is an inner constraint
+				if (neighbor != parent && local_visited.count(neighbor)) {
+					if (is_inner) {
+						has_inner_constraint = true; 	// Mark if cycle includes inner constraints
+					}
+				}
+			}
+			continue; // Continue searching for other cycles
 		}
 
-		visited.insert(current);
+		// Mark the current node as visited
+		local_visited.insert(current);
+		visited.insert(current); 		// make sure current node won't be visited in subsequent DFS traversals
 
-		// Traverse neighbors
-		for (int neighbor : adjacency_list.at(current)) {
-			// Skip the edge to the parent node (avoid trivial cycle detection)
+		// Push neighbors into the stack
+		for (size_t i = 0; i < adjacency_list.at(current).size(); ++i) {
+			int neighbor = adjacency_list.at(current)[i].first;
 			if (neighbor != parent) {
-				stack.push({neighbor, current});
+				stack.push(make_pair(neighbor, current));
 			}
 		}
 	}
 
-	return false;
+	// has to return true if there IS a cycle that has at least one inner constraint
+	return has_cycle && has_inner_constraint;
 }
 
-// Function that checks for cycles in a graph using stack (DFS)
-bool has_cycle(const map<int, vector<int>>& adjacency_list) {
+// Function to check for inner or mixed cycles in the entire graph
+bool has_inner_or_mixed_cycles(const map<int, vector<pair<int, bool>>>& adjacency_list) {
 	unordered_set<int> visited;
 
-	// Check each connected component
-	for (const auto& pair : adjacency_list) {
-		int node = pair.first;
+	for (auto it = adjacency_list.begin(); it != adjacency_list.end(); ++it) {
+		int node = it->first;
 		if (!visited.count(node)) {
-			if (detect_cycle(adjacency_list, node)) {
-				return true;
+			if (detect_inner_or_mixed_cycle_for_component(adjacency_list, node, visited)) {
+				return true; 	// Return immediately if any valid cycle is found
 			}
 		}
 	}
-	return false;
+	return false; // No cycles with inner constraints found
 }
 
 int count_finite_faces(const CDT& triangulation) {
@@ -90,17 +111,17 @@ string identify_case(const CDT& cdt, const Polygon_2& polygon, const int& constr
 		if( (polygon_is_convex_hull(cdt, polygon)) && (constraint_count == 0) ) {
 			return "A";
 		}
-		// Further check for cases B and C
-		for (const auto& constraint : constraints) {
-			Point p1 = polygon[constraint.first];
-			Point p2 = polygon[constraint.second];
-			if (!polygon.bounded_side(p1) || !polygon.bounded_side(p2)) {
-				// Case C: Convex boundary with inside constraints.
-				return "C";
-			}
-		}
-		// Case B: Convex boundary with open constraints.
-		return "B";
+		////////////// format constraints here //////////////////////////////////
+
+		////////////// end of format constraints ////////////////////////////////
+		//map<int, vector<pair<int, bool>>> adjacency_list = build_adjacency_list(formatted_constraints);
+
+		// if (has_inner_or_mixed_cycles(adjacency_list)) {
+		//	return "C";
+		// } else {
+		//	return "B";
+		// }
+
 	}
 	return "A";
 }
