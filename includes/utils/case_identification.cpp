@@ -125,7 +125,6 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 	// Convex boundary cases (A-C)
 	if((polygon_is_convex_hull(cdt, polygon))) {
 		cout << "Boundary is convex hull" << endl;
-		return "A";
 		// Case A: Convex boundary without constraints.
 		if(constraint_count == 0) {
 			cout << "case A" << endl;
