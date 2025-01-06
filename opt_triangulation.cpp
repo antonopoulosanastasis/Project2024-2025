@@ -218,7 +218,7 @@ int main(int argc, char* argv[])
 		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
 	}
 
-	string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector);
+	string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
 	vector<Point_2> steiner2;
 

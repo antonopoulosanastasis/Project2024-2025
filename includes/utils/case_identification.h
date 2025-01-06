@@ -29,6 +29,6 @@ int count_finite_faces(const CDT& triangulation);
 
 bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon);
 
-string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector);
+string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector, vector<Point>& points);
 
 #endif // CASE_IDENTIFICATION_H

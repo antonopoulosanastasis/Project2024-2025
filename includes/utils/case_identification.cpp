@@ -121,7 +121,7 @@ bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon) {
 	return initial_face_count == final_count;
 }
 
-string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector) {
+string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector, vector<Point>& points) {
 	// Convex boundary cases (A-C)
 	if((polygon_is_convex_hull(cdt, polygon))) {
 		cout << "Boundary is convex hull" << endl;
@@ -143,7 +143,32 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 	// Non convex boundary cases (D, E)
 	else {
 		cout << "Boundary is not convex hull" << endl;
-		return "D";
+		if((constraint_count == 0)) {
+			bool all_edges_parallel_to_axes = true;
 
+            // Check if all edges are parallel to the axes
+            for (size_t i = 0; i < boundary_vector.size(); ++i) {
+                int current_idx = boundary_vector[i];
+                int next_idx = boundary_vector[(i + 1) % boundary_vector.size()]; // Wrap around to the first point
+                Point current_point = points[current_idx];
+                Point next_point = points[next_idx];
+
+                // Check if the edge is horizontal or vertical
+                if (current_point.x() != next_point.x() && current_point.y() != next_point.y()) {
+                    all_edges_parallel_to_axes = false;
+                    break;
+                }
+            }
+
+            if (all_edges_parallel_to_axes) {
+                cout << "Case D" << endl;
+                return "D";
+            }
+		}
+		else {
+			cout << "Case E" << endl;
+			return "E";
+		}
 	}
+	return "F";
 }
