@@ -123,13 +123,14 @@ bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon) {
 
 string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector) {
 	// Convex boundary cases (A-C)
-	if(is_convex_polygon(polygon)) {
+	if((polygon_is_convex_hull(cdt, polygon))) {
+		cout << "Boundary is convex hull" << endl;
+		return "A";
 		// Case A: Convex boundary without constraints.
-		if( (polygon_is_convex_hull(cdt, polygon)) && (constraint_count == 0) ) {
+		if(constraint_count == 0) {
 			cout << "case A" << endl;
 			return "A";
 		}
-
 		vector<pair<pair<int, int>, bool>> formatted_constraints = combine_constraints(constraints, boundary_vector);
 		map<int, vector<pair<int, bool>>> adjacency_list = build_adjacency_list(formatted_constraints);
 		if (has_inner_or_mixed_cycles(adjacency_list)) {
@@ -139,11 +140,11 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 			cout << "case B" << endl;
 			return "B";
 		}
-	//} else if (edges_aligned) {
-	//	return "D";
-	//}
-	//else {
-	//	return "E";
 	}
-	return "A";
+	// Non convex boundary cases (D, E)
+	else {
+		cout << "Boundary is not convex hull" << endl;
+		return "D";
+
+	}
 }
