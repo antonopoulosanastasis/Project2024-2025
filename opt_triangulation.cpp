@@ -9,6 +9,7 @@
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
 #include <map>					// Necessary for vertex indices
+#include <string>
 
 #include "obtuse.h"
 #include "definitions.h"
@@ -177,11 +178,13 @@ int main(int argc, char* argv[])
 	// Initialize the Constrained Delaunay Triangulation (CDT)
 	CDT cdt;
 	vector<Point_2> steiner;
+	vector<int> boundary_vector;
 
 	// Construct the polygon using the region_boundary indices
 	Polygon_2 polygon;
 	for (const auto& idx : region_boundary) {
 		polygon.push_back(points[idx.as_int64()]);
+		boundary_vector.push_back(idx.as_int64());
 	}
 
 	for (size_t i = 0; i < polygon.size(); ++i) {
@@ -214,6 +217,8 @@ int main(int argc, char* argv[])
 		cout << "brute force for 4 steiner" << endl;
 		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
 	}
+
+	string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector);
 
 	vector<Point_2> steiner2;
 

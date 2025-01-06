@@ -1,5 +1,22 @@
 #include "case_identification.h"
 
+// Function to combine constraints and get them in a certain format
+// in order to search for cycles (cases B & C)
+vector<pair<pair<int, int>, bool>> combine_constraints(const vector<pair<int, int>>& inner_constraints, vector<int>& boundary_vector) {
+	vector<pair<pair<int, int>, bool>> formatted_constraints;
+	// Add boundary constraints from the polygon
+	for (int i = 0; i < boundary_vector.size(); i++) {
+		int node1 = boundary_vector[i];									// Get the actual index from region_boundary
+		int node2 = boundary_vector[(i + 1) % boundary_vector.size()];	// Wrap around to the first node
+		formatted_constraints.push_back({{node1, node2}, false}); 		// Boundary = false
+	}
+	// Add inner constraints
+	for (const auto& constraint : inner_constraints) {
+		formatted_constraints.push_back({constraint, true});			// Inner = true
+	}
+	return formatted_constraints;
+}
+
 // Function to build the adjacency list
 // This graph approach will be used to search with DFS for a cycle (case C)
 map<int, vector<pair<int, bool>>> build_adjacency_list(const vector<pair<pair<int, int>, bool>>& constraints) {
@@ -20,10 +37,10 @@ map<int, vector<pair<int, bool>>> build_adjacency_list(const vector<pair<pair<in
 
 // Function to detect inner or mixed cycles for a component
 bool detect_inner_or_mixed_cycle_for_component(const map<int, vector<pair<int, bool>>>& adjacency_list, int& start_node, unordered_set<int>& visited) {
-	stack<pair<int, int>> stack; 		// Pair of (current node, parent node)
-	unordered_set<int> local_visited; 	// Tracks nodes locally for cycles
+	stack<pair<int, int>> stack;		// Pair of (current node, parent node)
+	unordered_set<int> local_visited;	// Tracks nodes locally for cycles
 	bool has_inner_constraint = false;	// Tracks if cycle has an inner constraint
-	bool has_cycle = false; 			// Tracks if any cycle is detected
+	bool has_cycle = false;				// Tracks if any cycle is detected
 
 	stack.push(make_pair(start_node, -1));
 
@@ -104,24 +121,29 @@ bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon) {
 	return initial_face_count == final_count;
 }
 
-string identify_case(const CDT& cdt, const Polygon_2& polygon, const int& constraint_count, const vector<pair<int, int>>& constraints) {
+string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector) {
 	// Convex boundary cases (A-C)
 	if(is_convex_polygon(polygon)) {
 		// Case A: Convex boundary without constraints.
 		if( (polygon_is_convex_hull(cdt, polygon)) && (constraint_count == 0) ) {
+			cout << "case A" << endl;
 			return "A";
 		}
-		////////////// format constraints here //////////////////////////////////
 
-		////////////// end of format constraints ////////////////////////////////
-		//map<int, vector<pair<int, bool>>> adjacency_list = build_adjacency_list(formatted_constraints);
-
-		// if (has_inner_or_mixed_cycles(adjacency_list)) {
-		//	return "C";
-		// } else {
-		//	return "B";
-		// }
-
+		vector<pair<pair<int, int>, bool>> formatted_constraints = combine_constraints(constraints, boundary_vector);
+		map<int, vector<pair<int, bool>>> adjacency_list = build_adjacency_list(formatted_constraints);
+		if (has_inner_or_mixed_cycles(adjacency_list)) {
+			cout << "case C" << endl;
+			return "C";
+		} else {
+			cout << "case B" << endl;
+			return "B";
+		}
+	//} else if (edges_aligned) {
+	//	return "D";
+	//}
+	//else {
+	//	return "E";
 	}
 	return "A";
 }
