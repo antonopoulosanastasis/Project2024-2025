@@ -20,8 +20,6 @@ int count_finite_faces(const CDT& triangulation);
 
 bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon);
 
-void debug_graph(const map<int, vector<int>>& adj_list);
-
 // Check if an edge belongs to the constraint edges
 bool is_constraint_edge(int u, int v, const set<pair<int, int>>& constraint_edges);
 

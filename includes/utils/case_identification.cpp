@@ -21,21 +21,10 @@ bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon) {
 	return initial_face_count == final_count;
 }
 
-void debug_graph(const map<int, vector<int>>& adj_list) {
-	cout << "Adjacency List:" << endl;
-	for (const auto& [node, neighbors] : adj_list) {
-		cout << node << ": ";
-		for (int neighbor : neighbors) {
-			cout << neighbor << " ";
-		}
-		cout << endl;
-	}
-}
-
 // Normalize edges to be undirected (smallest vertex first)
-auto normalize_edge = [](int u, int v) -> pair<int, int> {
-	return {min(u, v), max(u, v)};
-};
+pair<int, int> normalize_edge(int u, int v) {
+    return {min(u, v), max(u, v)};
+}
 
 // Check if an edge belongs to the constraint edges
 bool is_constraint_edge(int u, int v, const set<pair<int, int>>& constraint_edges) {
@@ -66,9 +55,6 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
 		adj_list[edge.second].push_back(edge.first);
 	}
 
-	// Debug adjacency list
-	debug_graph(adj_list);
-
 	set<int> visited;
 	map<int, int> parent;
 
@@ -96,7 +82,6 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
 
 				if (visited.count(neighbor)) {
 					if (neighbor != parent[current]) {
-						cout << "Detected Cycle:" << endl;
 						set<pair<int, int>> cycle_edges;
 						int temp = current;
 
@@ -104,12 +89,10 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
 							int par = parent[temp];
 							if (par != -1) {
 								cycle_edges.insert({min(temp, par), max(temp, par)});
-								cout << "Edge: (" << par << ", " << temp << ")" << endl;
 							}
 							temp = par;
 						}
 						cycle_edges.insert({min(neighbor, current), max(neighbor, current)});
-						cout << "Edge: (" << current << ", " << neighbor << ")" << endl;
 
 						// Validate Cycle
 						bool has_constraint_edge = false;
@@ -120,14 +103,6 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
 								break; // We only need one constraint edge to satisfy Case C
 							}
 						}
-
-						cout << "Cycle Validation:" << endl;
-						cout << "Cycle Edges: ";
-						for (const auto& edge : cycle_edges) {
-							cout << "(" << edge.first << ", " << edge.second << ") ";
-						}
-						cout << endl;
-						cout << "Has Constraint Edge: " << has_constraint_edge << endl;
 
 						if (has_constraint_edge) {
 							return true;
