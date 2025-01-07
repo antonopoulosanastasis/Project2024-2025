@@ -173,26 +173,15 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
                             temp = par;
                         }
                         cycle_edges.insert({min(neighbor, current), max(neighbor, current)});
-
-                        // Check if the cycle satisfies the conditions for Case C
-                        bool has_boundary_edge = false;
                         bool has_constraint_edge = false;
 
                         for (const auto& edge : cycle_edges) {
                             if (constraint_edges.count(edge)) {
                                 has_constraint_edge = true;
                             }
-                            for (size_t i = 0; i < boundary_vector.size(); ++i) {
-                                int a = boundary_vector[i];
-                                int b = boundary_vector[(i + 1) % boundary_vector.size()];
-                                if (edge == pair<int, int>{min(a, b), max(a, b)}) {
-                                    has_boundary_edge = true;
-                                    break;
-                                }
-                            }
                         }
 
-                        if (has_constraint_edge && (has_boundary_edge || !has_boundary_edge)) {
+                        if (has_constraint_edge) {
                             return true; // Found a valid cycle for Case C
                         }
                     }
