@@ -206,7 +206,7 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 			cout << "case A" << endl;
 			return "A";
 		}
-		bool has_cycle = has_cycle_with_constraints(constraints, boundary_vector);;
+		bool has_cycle = has_cycle_with_constraints(constraints, boundary_vector);
 		if (has_cycle) {
 			cout << "case C" << endl;
 			return "C";
@@ -240,10 +240,8 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
                 return "D";
             }
 		}
-		else {
-			cout << "Case E" << endl;
-			return "E";
-		}
 	}
-	return "F";
+	// if no other case was detected, it's case E
+	cout << "Case E" << endl;
+	return "E";
 }
