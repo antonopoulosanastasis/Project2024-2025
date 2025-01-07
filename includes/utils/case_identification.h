@@ -16,21 +16,14 @@
 
 using namespace std;
 
-vector<pair<pair<int, int>, bool>> combine_constraints(const vector<pair<int, int>>& inner_constraints, vector<int>& boundary_vector);
-
-// Function to build the adjacency list
-// This graph approach will be used to search with DFS for a cycle (case C)
-map<int, vector<pair<int, bool>>> build_adjacency_list(const vector<pair<pair<int, int>, bool>>& constraints);
-
-// Function to detect a cycle in the graph using DFS with a stack
-bool detect_inner_or_mixed_cycle_for_component(const map<int, vector<pair<int, bool>>>& adjacency_list, int& start_node, unordered_set<int>& visited);
-
-// Function that checks for cycles in a graph using stack (DFS)
-bool has_inner_or_mixed_cycles(const map<int, vector<pair<int, bool>>>& adjacency_list);
-
 int count_finite_faces(const CDT& triangulation);
 
 bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon);
+
+void debug_graph(const map<int, vector<int>>& adj_list);
+
+// Check if an edge belongs to the constraint edges
+bool is_constraint_edge(int u, int v, const set<pair<int, int>>& constraint_edges);
 
 bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, const vector<int>& boundary_vector);
 
