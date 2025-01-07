@@ -282,10 +282,8 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
                 return "D";
             }
 		}
-		else {
-			cout << "Case E" << endl;
-			return "E";
-		}
 	}
-	return "F";
+	// if no other case was detected, it's case E
+	cout << "Case E" << endl;
+	return "E";
 }
