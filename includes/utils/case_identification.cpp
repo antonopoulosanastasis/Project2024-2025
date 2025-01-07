@@ -121,6 +121,93 @@ bool polygon_is_convex_hull(const CDT& cdt, const Polygon_2& polygon) {
 	return initial_face_count == final_count;
 }
 
+bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, const vector<int>& boundary_vector) {
+    // Create an adjacency list for the graph
+    map<int, vector<int>> adj_list;
+    set<pair<int, int>> constraint_edges(constraints.begin(), constraints.end());
+
+    // Add constraint edges to adjacency list
+    for (const auto& edge : constraints) {
+        adj_list[edge.first].push_back(edge.second);
+        adj_list[edge.second].push_back(edge.first);
+    }
+
+    // Add boundary edges to adjacency list
+    for (size_t i = 0; i < boundary_vector.size(); ++i) {
+        int current = boundary_vector[i];
+        int next = boundary_vector[(i + 1) % boundary_vector.size()]; // Wrap around
+        adj_list[current].push_back(next);
+        adj_list[next].push_back(current);
+    }
+
+    // Perform BFS/DFS to detect cycles and check edge sources
+    set<int> visited;
+    map<int, int> parent; // To keep track of parent nodes
+
+    for (const auto& node : adj_list) {
+        int start = node.first;
+        if (visited.count(start)) continue;
+
+        queue<int> q;
+        q.push(start);
+        parent[start] = -1;
+
+        while (!q.empty()) {
+            int current = q.front();
+            q.pop();
+            visited.insert(current);
+
+            for (int neighbor : adj_list[current]) {
+                if (visited.count(neighbor)) {
+                    // Found a back edge, check if it forms a valid cycle
+                    if (neighbor != parent[current]) {
+                        set<pair<int, int>> cycle_edges;
+                        int temp = current;
+
+                        // Traverse the cycle path
+                        while (temp != -1 && temp != neighbor) {
+                            int par = parent[temp];
+                            if (par != -1) {
+                                cycle_edges.insert({min(temp, par), max(temp, par)});
+                            }
+                            temp = par;
+                        }
+                        cycle_edges.insert({min(neighbor, current), max(neighbor, current)});
+
+                        // Check if the cycle satisfies the conditions for Case C
+                        bool has_boundary_edge = false;
+                        bool has_constraint_edge = false;
+
+                        for (const auto& edge : cycle_edges) {
+                            if (constraint_edges.count(edge)) {
+                                has_constraint_edge = true;
+                            }
+                            for (size_t i = 0; i < boundary_vector.size(); ++i) {
+                                int a = boundary_vector[i];
+                                int b = boundary_vector[(i + 1) % boundary_vector.size()];
+                                if (edge == pair<int, int>{min(a, b), max(a, b)}) {
+                                    has_boundary_edge = true;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (has_constraint_edge && (has_boundary_edge || !has_boundary_edge)) {
+                            return true; // Found a valid cycle for Case C
+                        }
+                    }
+                } else {
+                    parent[neighbor] = current;
+                    q.push(neighbor);
+                }
+            }
+        }
+    }
+
+    return false; // No valid cycle found
+}
+
+
 string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector, vector<Point>& points) {
 	// Convex boundary cases (A-C)
 	if((polygon_is_convex_hull(cdt, polygon))) {
@@ -130,9 +217,8 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 			cout << "case A" << endl;
 			return "A";
 		}
-		vector<pair<pair<int, int>, bool>> formatted_constraints = combine_constraints(constraints, boundary_vector);
-		map<int, vector<pair<int, bool>>> adjacency_list = build_adjacency_list(formatted_constraints);
-		if (has_inner_or_mixed_cycles(adjacency_list)) {
+		bool has_cycle = has_cycle_with_constraints(constraints, boundary_vector);;
+		if (has_cycle) {
 			cout << "case C" << endl;
 			return "C";
 		} else {
