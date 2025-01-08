@@ -43,7 +43,7 @@ add_executable( opt_triangulation opt_triangulation.cpp )
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS opt_triangulation )
 
 # Link the executable to CGAL and third-party libraries
-target_link_libraries(opt_triangulation PRIVATE CGAL::CGAL Utils Qt5::Widgets )
+target_link_libraries(opt_triangulation PRIVATE CGAL::CGAL Utils Qt5::Widgets Boost::filesystem)
 
 if (CGAL_Qt5_FOUND)
   add_definitions(-DCGAL_USE_BASIC_VIEWER)

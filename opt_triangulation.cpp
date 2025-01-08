@@ -8,6 +8,7 @@
 #include <boost/json/value.hpp>
 #include <boost/json/serialize.hpp>
 #include <boost/json/parse.hpp>
+#include <boost/filesystem.hpp>
 #include <map>					// Necessary for vertex indices
 #include <string>
 
@@ -21,6 +22,7 @@
 #include "case_identification.h"
 
 namespace json = boost::json;
+namespace fs = boost::filesystem;
 using namespace std;
 
 // Function to deserialize points from JSON arrays
@@ -130,34 +132,16 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	file << json::serialize(json_output);
 }
 
-int main(int argc, char* argv[])
-{
+// Process a single file
+void process_file(const std::string& filename) {
+    std::ifstream in_file(filename);
+    if (!in_file) {
+        std::cerr << "Error: Could not open file " << filename << std::endl;
+        return;
+    }
 
-	// Check arguments
-	if (argc < 4) {
-		cerr << "Error \n";
-		return 1;
-	}
-
-	string filename, output;
-	if((strcmp(argv[1], "-i") == 0) && (strcmp(argv[3], "-o") == 0)) {
-		filename = argv[2];
-		output = argv[4];
-	}
-	else if ((strcmp(argv[1], "-o") == 0) && (strcmp(argv[3], "-i") == 0)) {
-		filename = argv[4];
-		output = argv[2];
-	}
-	
-	// Read the file
-	ifstream in_file(filename);
-	if (!in_file) {
-		cerr << "Error: Could not open file " << filename << endl;
-		return 1;
-	}
-
-	stringstream buffer;
-	buffer << in_file.rdbuf();
+    std::stringstream buffer;
+    buffer << in_file.rdbuf();
 	json::value json_value = json::parse(buffer.str());
 
 	// Extract data from the JSON
@@ -203,61 +187,158 @@ int main(int argc, char* argv[])
 	for (const auto& constraint : constraints) {
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
+
+    string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
+
+    std::cout << "File: " << filename << "\nInstance UID: " << instance_uid
+              << "\nCase: " << case_result << "\n\n";
+}
+
+// Process all JSON files in a directory
+void process_directory(const std::string& directory_path) {
+	fs::path dir_path(directory_path);
+
+	if (!fs::exists(dir_path) || !fs::is_directory(dir_path)) {
+		std::cerr << "Error: " << directory_path << " is not a valid directory." << std::endl;
+		return;
+	}
+
+	for (const auto& entry : fs::directory_iterator(dir_path)) {
+		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {
+			process_file(entry.path().string());
+		}
+	}
+}
+
+int main(int argc, char* argv[])
+{
+
+	// // Check arguments
+	// if (argc < 4) {
+	// 	cerr << "Error \n";
+	// 	return 1;
+	// }
+
+	// string filename, output;
+	// if((strcmp(argv[1], "-i") == 0) && (strcmp(argv[3], "-o") == 0)) {
+	// 	filename = argv[2];
+	// 	output = argv[4];
+	// }
+	// else if ((strcmp(argv[1], "-o") == 0) && (strcmp(argv[3], "-i") == 0)) {
+	// 	filename = argv[4];
+	// 	output = argv[2];
+	// }
+	
+	// // Read the file
+	// ifstream in_file(filename);
+	// if (!in_file) {
+	// 	cerr << "Error: Could not open file " << filename << endl;
+	// 	return 1;
+	// }
+
+	// stringstream buffer;
+	// buffer << in_file.rdbuf();
+	// json::value json_value = json::parse(buffer.str());
+
+	// // Extract data from the JSON
+	// json::object json_data = json_value.as_object();
+	// json::string instance_uid = json_data["instance_uid"].as_string();
+	// json::array points_x = json_data["points_x"].as_array();
+	// json::array points_y = json_data["points_y"].as_array();
+	// json::array region_boundary = json_data["region_boundary"].as_array();
+	// json::array additional_constraints = json_data["additional_constraints"].as_array();
+	// bool delaunay = json_value.at("delaunay").as_bool();
+	// json::string method = json_value.at("method").as_string();
+	// boost::json::object parameters = json_value.at("parameters").as_object();
+
+	// // Deserialize points and constraints
+	// vector<Point> points = deserialize_points(points_x, points_y);
+	// vector<pair<int, int>> constraints = deserialize_constraints(additional_constraints);
+
+	// // Initialize the Constrained Delaunay Triangulation (CDT)
+	// CDT cdt;
+	// vector<Point_2> steiner;
+	// vector<int> boundary_vector;
+
+	// // Construct the polygon using the region_boundary indices
+	// Polygon_2 polygon;
+	// for (const auto& idx : region_boundary) {
+	// 	polygon.push_back(points[idx.as_int64()]);
+	// 	boundary_vector.push_back(idx.as_int64());
+	// }
+
+	// for (size_t i = 0; i < polygon.size(); ++i) {
+	// 	cdt.insert_constraint(polygon[i], polygon[(i + 1) % polygon.size()]);
+	// }
+
+	// // Initialize point indexes
+	// map<Point, int> vertex_indices;
+	// // Insert points into the triangulation 
+	// for (const Point& p : points) {
+	// 	cdt.insert(p);
+	// 	vertex_indices[p] = vertex_indices.size();
+	// }
+
+	// // Insert constrained edges based on the provided indices
+	// for (const auto& constraint : constraints) {
+	// 	cdt.insert_constraint(points[constraint.first], points[constraint.second]);
+	// }
     
-	if (is_obtuse_triangulation(cdt)) {
-		cout << "The triangulation contains at least one obtuse triangle.\n";
-	} else {
-		cout << "All triangles in the triangulation are acute or right-angled.\n";
-	}
+	// if (is_obtuse_triangulation(cdt)) {
+	// 	cout << "The triangulation contains at least one obtuse triangle.\n";
+	// } else {
+	// 	cout << "All triangles in the triangulation are acute or right-angled.\n";
+	// }
 
-	cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
+	// cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
 
-	if (!delaunay) {
-		cout << "Delaunay is false" << '\n';
-		cout << "brute force for 4 steiner" << endl;
-		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
-	}
+	// if (!delaunay) {
+	// 	cout << "Delaunay is false" << '\n';
+	// 	cout << "brute force for 4 steiner" << endl;
+	// 	brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
+	// }
 
-	string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
+	// string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
-	vector<Point_2> steiner2;
+	// vector<Point_2> steiner2;
 
-	if( method == "local" ) {
-		cout << "Using Local Search" << '\n';
-    	int L = parameters.at("L").as_int64();
-		local_search_opt(cdt, polygon, L, steiner2, vertex_indices);
-	}
-	else if ( method == "sa" ) {
-		cout << "Using Simulated Annealing" << '\n';
-		double alpha = parameters.at("alpha").as_double();
-		double beta = parameters.at("beta").as_double();
-		int L = parameters.at("L").as_int64();
-		simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
-	} else if ( method == "ant" ) {
-		cout << "Using Ant Colony" << endl;
-		double alpha = parameters.at("alpha").as_double();
-		double beta = parameters.at("beta").as_double();
-		double xi = parameters.at("xi").as_int64();
-		double psi = parameters.at("psi").as_int64();
-		double lambda = parameters.at("lambda").as_double();
-		int kappa = parameters.at("kappa").as_int64();
-		int L = parameters.at("L").as_int64();
-		ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
-	} else {
-		throw invalid_argument("Invalid minimization option");
-	}
+	// if( method == "local" ) {
+	// 	cout << "Using Local Search" << '\n';
+    // 	int L = parameters.at("L").as_int64();
+	// 	local_search_opt(cdt, polygon, L, steiner2, vertex_indices);
+	// }
+	// else if ( method == "sa" ) {
+	// 	cout << "Using Simulated Annealing" << '\n';
+	// 	double alpha = parameters.at("alpha").as_double();
+	// 	double beta = parameters.at("beta").as_double();
+	// 	int L = parameters.at("L").as_int64();
+	// 	simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
+	// } else if ( method == "ant" ) {
+	// 	cout << "Using Ant Colony" << endl;
+	// 	double alpha = parameters.at("alpha").as_double();
+	// 	double beta = parameters.at("beta").as_double();
+	// 	double xi = parameters.at("xi").as_int64();
+	// 	double psi = parameters.at("psi").as_int64();
+	// 	double lambda = parameters.at("lambda").as_double();
+	// 	int kappa = parameters.at("kappa").as_int64();
+	// 	int L = parameters.at("L").as_int64();
+	// 	ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
+	// } else {
+	// 	throw invalid_argument("Invalid minimization option");
+	// }
 
-	int obtuse_count = count_obtuse_angles(cdt, polygon);
+	// int obtuse_count = count_obtuse_angles(cdt, polygon);
 
-	cout << "Obtuse angle count: "<< obtuse_count << '\n';
+	// cout << "Obtuse angle count: "<< obtuse_count << '\n';
 
-	steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
+	// steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
 
-	export_to_json(cdt, steiner, output, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
+	// export_to_json(cdt, steiner, output, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
 
-	cout << "steiner points added: " << steiner.size() << endl;
+	// cout << "steiner points added: " << steiner.size() << endl;
 
-	// Draw the triangulation using CGAL's draw function
-	CGAL::draw(cdt);
+	// // Draw the triangulation using CGAL's draw function
+	// CGAL::draw(cdt);
+	process_directory("instances/");
 	return 0;
 }
