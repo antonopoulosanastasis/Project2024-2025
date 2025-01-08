@@ -1,10 +1,14 @@
 #include "local_search.h"
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index) {
+
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value) {
 	int iterations = 0;
 	int obtuse_count;
+	vector<int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
+
 	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
 		int best_obtuse_count = obtuse_count;
+		obtuse_counts.push_back(obtuse_count);
 		vector<Face_handle> face_handles;
 		for (Face_handle face : cdt.finite_face_handles()) {
 			face_handles.push_back(face);
@@ -28,7 +32,8 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(m_insert);
 					index[m_insert] = index.size();
-					cout << "Inserted midpoint at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted midpoint at iteration " << iterations << endl;
 					break;
 				}
 			}
@@ -40,7 +45,8 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(c_insert);
 					index[c_insert] = index.size();
-					cout << "Inserted circumcenter at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted circumcenter at iteration " << iterations << endl;
 					break;
 				}
 			}
@@ -53,7 +59,8 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(ce_insert);
 					index[ce_insert] = index.size();
-					cout << "Inserted centroid at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted centroid at iteration " << iterations << endl;
 					break;
 				}
 			}
@@ -66,7 +73,8 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(p_insert);
 					index[p_insert] = index.size();
-					cout << "Inserted projection at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted projection at iteration " << iterations << endl;
 					break;
 				}
 			}
@@ -78,12 +86,12 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(a_insert);
 					index[a_insert] = index.size();
-					cout << "Inserted adjacent at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted adjacent at iteration " << iterations << endl;
 					break;
 				}
 			}
 			Point r_insert = steiner_random_at_face(face_handles[i], polygon);
-			cout << "rand insert" << endl;
 			if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
 				cdt_random.insert(r_insert);
 				int new_obtuse_count = count_obtuse_angles(cdt_random, polygon);
@@ -92,11 +100,13 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					best_obtuse_count = new_obtuse_count;
 					steiner.emplace_back(r_insert);
 					index[r_insert] = index.size();
-					cout << "Inserted random at iteration " << iterations << endl;
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted random at iteration " << iterations << endl;
 					break;
 				}
 			}
 		}
 		iterations++;
 	}
+	convergence_value = calculate_convergence(obtuse_counts);
 }

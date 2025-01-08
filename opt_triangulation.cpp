@@ -133,15 +133,15 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 }
 
 // Process a single file
-void process_file(const std::string& filename) {
-    std::ifstream in_file(filename);
-    if (!in_file) {
-        std::cerr << "Error: Could not open file " << filename << std::endl;
-        return;
-    }
+void process_file(const string& filename) {
+	ifstream in_file(filename);
+	if (!in_file) {
+		cerr << "Error: Could not open file " << filename << endl;
+		return;
+	}
 
-    std::stringstream buffer;
-    buffer << in_file.rdbuf();
+	stringstream buffer;
+	buffer << in_file.rdbuf();
 	json::value json_value = json::parse(buffer.str());
 
 	// Extract data from the JSON
@@ -188,21 +188,55 @@ void process_file(const std::string& filename) {
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
 
-    string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
+	if (!delaunay) {
+		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
+	}
 
-    std::cout << "File: " << filename << "\nInstance UID: " << instance_uid
-              << "\nCase: " << case_result << "\n\n";
+	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
+
+	vector<Point_2> steiner2;
+	if(case_result == "A") {
+		long double convergence_value = 0.0;
+		cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
+		cout << "triangulation before:" << endl;
+		cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
+		int L = parameters.at("L").as_int64();
+		local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+		cout << "triangulation after" << endl;
+		cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
+		cout << "Steiner points: " << steiner2.size() << endl;
+		cout << "Convergence value: " << convergence_value << endl;
+		
+	}
+    
+	// double alpha = parameters.at("alpha").as_double();
+	// double beta = parameters.at("beta").as_double();
+	// int L = parameters.at("L").as_int64();
+	// simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
+	// double alpha = parameters.at("alpha").as_double();
+	// double beta = parameters.at("beta").as_double();
+	// double xi = parameters.at("xi").as_int64();
+	// double psi = parameters.at("psi").as_int64();
+	// double lambda = parameters.at("lambda").as_double();
+	// int kappa = parameters.at("kappa").as_int64();
+	// int L = parameters.at("L").as_int64();
+	// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
+
+
+	
+	// CGAL::draw(cdt);
 }
 
 // Process all JSON files in a directory
-void process_directory(const std::string& directory_path) {
+void process_directory(const string& directory_path) {
 	fs::path dir_path(directory_path);
 
 	if (!fs::exists(dir_path) || !fs::is_directory(dir_path)) {
-		std::cerr << "Error: " << directory_path << " is not a valid directory." << std::endl;
+		cerr << "Error: " << directory_path << " is not a valid directory." << endl;
 		return;
 	}
 
+	cout << "File " << "\t\t\t\t\tInstance UID " << "\t\tCase " << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
 		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {
 			process_file(entry.path().string());

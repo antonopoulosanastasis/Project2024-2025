@@ -121,24 +121,19 @@ bool has_cycle_with_constraints( const vector<pair<int, int>>& constraints, cons
 string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<pair<int, int>>& constraints, vector<int>& boundary_vector, vector<Point>& points) {
 	// Convex boundary cases (A-C)
 	if((polygon_is_convex_hull(cdt, polygon))) {
-		cout << "Boundary is convex hull" << endl;
 		// Case A: Convex boundary without constraints.
 		if(constraint_count == 0) {
-			cout << "case A" << endl;
 			return "A";
 		}
 		bool has_cycle = has_cycle_with_constraints(constraints, boundary_vector);
 		if (has_cycle) {
-			cout << "case C" << endl;
 			return "C";
 		} else {
-			cout << "case B" << endl;
 			return "B";
 		}
 	}
 	// Non convex boundary cases (D, E)
 	else {
-		cout << "Boundary is not convex hull" << endl;
 		if((constraint_count == 0)) {
 			bool all_edges_parallel_to_axes = true;
 
@@ -157,12 +152,10 @@ string identify_case(CDT& cdt, Polygon_2& polygon, int constraint_count, vector<
 			}
 
 			if (all_edges_parallel_to_axes) {
-				cout << "Case D" << endl;
 				return "D";
 			}
 		}
 	}
 	// if no other case was detected, it's case E
-	cout << "Case E" << endl;
 	return "E";
 }

@@ -11,9 +11,10 @@
 #include "adjacent.h"
 #include "random_steiner.h"
 #include "ant_colony.h"
+#include "convergence.h"
 
 using namespace std;
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index);
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value);
 
 #endif // LOCAL_SEARCH_H
