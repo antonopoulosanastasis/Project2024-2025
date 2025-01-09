@@ -4,19 +4,20 @@
 // Function to calculate the mean convergence value
 double calculate_convergence(const vector<int>& obtuse_counts) {
 	int N = obtuse_counts.size(); // Number of iterations
-	if(N < 2) {
+	if (N <= 1) {
 		return 0.0;
 	}
 	long double sum = 0.0;
 	for (int n = 1; n <= N - 1; n++) { 
-		// Calculate the ratios for the formula
-		double obtuse_ratio = static_cast<double>(obtuse_counts[n + 1]) / obtuse_counts[n];
-		double steiner_ratio = static_cast<double>(n + 1) / n;
-
-		std::cout << log(obtuse_ratio) << "   " <<  log(steiner_ratio) << std::endl;
+		double obtuse_ratio = 0.0;
+		// Check for invalid values before computing the ratios
+		if (obtuse_counts[n] > 0 && obtuse_counts[n + 1] > 0) {
+			obtuse_ratio = log(static_cast<double>(obtuse_counts[n + 1]) / obtuse_counts[n]);
+		} 
+		double steiner_ratio = log(static_cast<double>(n + 1) / n);
 
 		// Update the summation
-		sum += log(obtuse_ratio) / log(steiner_ratio);
+		sum += obtuse_ratio / steiner_ratio;
 	}
 
 	// Return the mean value
