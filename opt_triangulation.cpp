@@ -208,7 +208,7 @@ void process_file(const string& filename) {
 
 	vector<Point_2> steiner2;
 	if(case_result == "A") {
-		int L = 40;
+		int L = 60;
 		long double convergence_value = 0.0;
 		// cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
 		// cout << "triangulation before:" << endl;
@@ -220,8 +220,9 @@ void process_file(const string& filename) {
 		// cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
 		int width = 25;  //
 
-		cout << left << setw(60) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
+		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
 		  << setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
+		
 	}
     
 	// double alpha = parameters.at("alpha").as_double();
@@ -290,7 +291,7 @@ void process_directory(const string& directory_path) {
 
 	int width = 25;
 	// cout << "File " << "\t\t\t\t\t\t\t" << "\t\t\t\tCase " << endl;
-	cout << left << setw(60) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
+	cout << left << setw(80) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
 		<< setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
 		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {

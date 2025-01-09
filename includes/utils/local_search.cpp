@@ -14,8 +14,11 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 			face_handles.push_back(face);
 		}
 		remove_faces_outside_boundary(face_handles, polygon);
-		remove_non_obtuse_faces(face_handles);
 		for(int i = 0; i < face_handles.size(); i++) {
+			int obtuse_index = find_obtuse_angle_index(face_handles[i]);
+			if(obtuse_index == -1) {
+				continue;
+			}
 			CDT cdt_projection = cdt;
 			CDT cdt_midpoint = cdt;
 			CDT cdt_circumcenter = cdt;
@@ -23,6 +26,20 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 			CDT cdt_adjacent = cdt;
 			CDT cdt_random = cdt;
 			CDT best_triangulation = cdt;
+			Point p_insert = steiner_projection_at_face(face_handles[i], polygon);
+			if( !((p_insert.x() == 0.5) && (p_insert.y() == 0.5))) {
+				cdt_projection.insert(p_insert);
+				int new_obtuse_count = count_obtuse_angles(cdt_projection, polygon);
+				if (new_obtuse_count <= best_obtuse_count) {
+					cdt = cdt_projection;
+					best_obtuse_count = new_obtuse_count;
+					steiner.emplace_back(p_insert);
+					index[p_insert] = index.size();
+					obtuse_counts.push_back(best_obtuse_count);
+					// cout << "Inserted projection at iteration " << iterations << endl;
+					break;
+				}
+			}
 			Point m_insert = steiner_midpoint_at_face(face_handles[i], polygon);
 			if( !((m_insert.x() == 0.5) && (m_insert.y() == 0.5)) ) {
 				cdt_midpoint.insert(m_insert);
@@ -61,20 +78,6 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					index[ce_insert] = index.size();
 					obtuse_counts.push_back(best_obtuse_count);
 					// cout << "Inserted centroid at iteration " << iterations << endl;
-					break;
-				}
-			}
-			Point p_insert = steiner_projection_at_face(face_handles[i], polygon);
-			if( !((p_insert.x() == 0.5) && (p_insert.y() == 0.5))) {
-				cdt_projection.insert(p_insert);
-				int new_obtuse_count = count_obtuse_angles(cdt_projection, polygon);
-				if (new_obtuse_count <= best_obtuse_count) {
-					cdt = cdt_projection;
-					best_obtuse_count = new_obtuse_count;
-					steiner.emplace_back(p_insert);
-					index[p_insert] = index.size();
-					obtuse_counts.push_back(best_obtuse_count);
-					// cout << "Inserted projection at iteration " << iterations << endl;
 					break;
 				}
 			}
