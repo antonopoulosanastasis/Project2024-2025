@@ -12,10 +12,11 @@
 #include "obtuse.h"
 #include "centroid.h"
 #include "adjacent.h"
+#include "convergence.h"
 
 using namespace std;
 
-void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index);
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index, double& convergence);
 
 // Function to compute energy
 double compute_energy(CDT& cdt, const Polygon_2& polygon, int steiner_count, double alpha, double beta);

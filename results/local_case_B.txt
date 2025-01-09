@@ -1,8 +1,8 @@
 File:                                                                           Before                   After                    Steiner                  convergence_value        Energy                                  
-challenge_instances/simple-polygon-exterior-20_10_6fbd9669.instance.json        6                        2                        4                        -0.0433969               8                        
-challenge_instances/simple-polygon-exterior-20_10_ce9152de.instance.json        9                        7                        2                        -0.00326068              22                       
-challenge_instances/simple-polygon-exterior-20_20_4ddfa00e.instance.json        21                       13                       6                        0.995235                 42                       
-challenge_instances/simple-polygon-exterior-20_60_57858065.instance.json        66                       45                       19                       -0.0724626               144.5                    
-challenge_instances/simple-polygon-exterior-20_100_8d1c2e30.instance.json       64                       36                       25                       6.71127                  120.5                    
-challenge_instances/simple-polygon-exterior-20_100_512f0fc4.instance.json       65                       37                       24                       -0.12678                 123                      
-challenge_instances/simple-polygon-exterior-20_100_8ff7a64d.instance.json       109                      71                       31                       -0.109555                228.5
+challenge_instances/simple-polygon-exterior-20_10_6fbd9669.instance.json        6                        2                        4                        -0.81362                 8                        
+challenge_instances/simple-polygon-exterior-20_10_ce9152de.instance.json        9                        7                        2                        -0.192645                22                       
+challenge_instances/simple-polygon-exterior-20_20_4ddfa00e.instance.json        21                       13                       6                        -0.315563                42                       
+challenge_instances/simple-polygon-exterior-20_60_57858065.instance.json        66                       45                       19                       -0.219854                144.5                    
+challenge_instances/simple-polygon-exterior-20_100_512f0fc4.instance.json       65                       39                       22                       -0.303312                128                      
+challenge_instances/simple-polygon-exterior-20_100_8d1c2e30.instance.json       64                       37                       25                       -0.314113                123.5                    
+challenge_instances/simple-polygon-exterior-20_100_8ff7a64d.instance.json       109                      73                       30                       -0.208358                234                      

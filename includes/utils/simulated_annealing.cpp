@@ -21,9 +21,10 @@ Point choose_steiner(CDT& cdt, const Polygon_2& polygon, int option, Face_handle
 	}
 }
 
-void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index) {
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index, double& convergence) {
 	double energy = compute_energy(cdt, polygon, 0, alpha, beta);
 	double temperature = 1.0;
+	map<int,int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
 
 	// Create a random device to seed the random number generator
 	random_device rd;
@@ -34,7 +35,7 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 	// Range [1,5] for random int generator in order to choose steiner point method
 	uniform_int_distribution<int> steiner_choice(1, 5);
 
-	while(temperature >= 0 && count_obtuse_angles(cdt, polygon)) {
+	while(temperature > 0 && count_obtuse_angles(cdt, polygon)) {
 
 		for (Face_handle face : cdt.finite_face_handles()) {
 			int obtuse_index = find_obtuse_angle_index(face);
@@ -66,9 +67,12 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 				// Store inserted steiner in vector
 				steiner.emplace_back(steiner_point);
 				index[steiner_point] = index.size();
+				int best_obtuse_count = count_obtuse_angles(cdt, polygon);
+				obtuse_counts[steiner.size()] = best_obtuse_count;
 				break;
 			}
 		}
 		temperature -= (1.0 / L);
 	}
+	convergence =  calculate_convergence(obtuse_counts);
 }
