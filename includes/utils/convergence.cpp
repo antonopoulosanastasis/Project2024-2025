@@ -9,11 +9,11 @@ double calculate_convergence(const vector<int>& obtuse_counts) {
 	}
 	long double sum = 0.0;
 	for (int n = 1; n <= N - 1; n++) { 
-		double obtuse_ratio = 0.0;
 		// Check for invalid values before computing the ratios
-		if (obtuse_counts[n] > 0 && obtuse_counts[n + 1] > 0) {
-			obtuse_ratio = log(static_cast<double>(obtuse_counts[n + 1]) / obtuse_counts[n]);
+		if (obtuse_counts[n] <= 0 || obtuse_counts[n + 1] <= 0) {
+			continue;
 		} 
+		double obtuse_ratio = log(static_cast<double>(obtuse_counts[n + 1]) / obtuse_counts[n]);
 		double steiner_ratio = log(static_cast<double>(n + 1) / n);
 
 		// Update the summation

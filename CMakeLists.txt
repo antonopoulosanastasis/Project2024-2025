@@ -42,6 +42,9 @@ add_executable( opt_triangulation opt_triangulation.cpp )
 
 add_to_cached_list( CGAL_EXECUTABLE_TARGETS opt_triangulation )
 
+# Add the -pthread flag
+target_compile_options(opt_triangulation PRIVATE -pthread)
+
 # Link the executable to CGAL and third-party libraries
 target_link_libraries(opt_triangulation PRIVATE CGAL::CGAL Utils Qt5::Widgets Boost::filesystem)
 

@@ -11,6 +11,10 @@
 #include <boost/filesystem.hpp>
 #include <map>					// Necessary for vertex indices
 #include <string>
+#include <iomanip>				// for setw
+#include <pthread.h>			// for threads
+#include <atomic>				// flag for directory processing
+#include <queue>				// queue for threads
 
 #include "obtuse.h"
 #include "definitions.h"
@@ -21,9 +25,17 @@
 #include "custom_cdt.h"
 #include "case_identification.h"
 
+#define THREADS 5
+
 namespace json = boost::json;
 namespace fs = boost::filesystem;
 using namespace std;
+
+// Shared data
+queue<string> fileQueue;
+pthread_mutex_t queueMutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_cond_t queueCond = PTHREAD_COND_INITIALIZER;
+atomic<bool> directoryProcessingDone(false);	// initialized with false
 
 // Function to deserialize points from JSON arrays
 vector<Point> deserialize_points(const json::array& points_x, const json::array& points_y) {
@@ -151,9 +163,9 @@ void process_file(const string& filename) {
 	json::array points_y = json_data["points_y"].as_array();
 	json::array region_boundary = json_data["region_boundary"].as_array();
 	json::array additional_constraints = json_data["additional_constraints"].as_array();
-	bool delaunay = json_value.at("delaunay").as_bool();
-	json::string method = json_value.at("method").as_string();
-	boost::json::object parameters = json_value.at("parameters").as_object();
+	// bool delaunay = json_value.at("delaunay").as_bool();
+	// json::string method = json_value.at("method").as_string();
+	// boost::json::object parameters = json_value.at("parameters").as_object();
 
 	// Deserialize points and constraints
 	vector<Point> points = deserialize_points(points_x, points_y);
@@ -188,25 +200,28 @@ void process_file(const string& filename) {
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
 
-	if (!delaunay) {
-		brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
-	}
+	// if (!delaunay) {
+	// 	brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
+	// }
 
 	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
 	vector<Point_2> steiner2;
 	if(case_result == "A") {
+		int L = 40;
 		long double convergence_value = 0.0;
-		cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
-		cout << "triangulation before:" << endl;
-		cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
-		int L = parameters.at("L").as_int64();
+		// cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
+		// cout << "triangulation before:" << endl;
+		// cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
+		int obtuse_before = count_obtuse_angles(cdt, polygon);
 		local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-		cout << "triangulation after" << endl;
-		cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
-		cout << "Steiner points: " << steiner2.size() << endl;
-		cout << "Convergence value: " << convergence_value << endl;
-		
+		int obtuse_after = count_obtuse_angles(cdt, polygon);
+		// cout << "triangulation after" << endl;
+		// cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
+		int width = 25;  //
+
+		cout << left << setw(60) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
+		  << setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
 	}
     
 	// double alpha = parameters.at("alpha").as_double();
@@ -222,26 +237,80 @@ void process_file(const string& filename) {
 	// int L = parameters.at("L").as_int64();
 	// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
 
-
+	// cout << filename << "\t\t\t\t\t\t\t" << "\t\t\t\t" << case_result <<  endl;
 	
 	// CGAL::draw(cdt);
+}
+
+void* workerThread(void* arg) {
+	while (1) {
+        string file;
+
+		// Lock the queue to retrieve a task
+		pthread_mutex_lock(&queueMutex);
+
+		// Wait until there is work or directory processing is done
+		while (fileQueue.empty() && !directoryProcessingDone) {
+			pthread_cond_wait(&queueCond, &queueMutex);
+		}
+
+		// Exit if processing is done and queue is empty
+		if (fileQueue.empty() && directoryProcessingDone) {
+			pthread_mutex_unlock(&queueMutex);
+			break;
+		}
+
+		// Get the next file to process
+		file = fileQueue.front();
+		fileQueue.pop();
+
+		pthread_mutex_unlock(&queueMutex);
+
+		// Process the file
+		process_file(file);
+	}
+
+	return nullptr;
 }
 
 // Process all JSON files in a directory
 void process_directory(const string& directory_path) {
 	fs::path dir_path(directory_path);
+	// Process directory creates 10 threads through which, it scans 10 files at a time
+	pthread_t th[THREADS];
+	for(int i = 0; i < THREADS; i++) {
+		pthread_create(th + i, nullptr, &workerThread, nullptr);
+	}
+
 
 	if (!fs::exists(dir_path) || !fs::is_directory(dir_path)) {
 		cerr << "Error: " << directory_path << " is not a valid directory." << endl;
 		return;
 	}
 
-	cout << "File " << "\t\t\t\t\tInstance UID " << "\t\tCase " << endl;
+	int width = 25;
+	// cout << "File " << "\t\t\t\t\t\t\t" << "\t\t\t\tCase " << endl;
+	cout << left << setw(60) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
+		<< setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
 		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {
-			process_file(entry.path().string());
+			string file = entry.path().string();
+			pthread_mutex_lock(&queueMutex);
+			fileQueue.push(file);
+			pthread_cond_signal(&queueCond); // Notify one thread that work is available
+			pthread_mutex_unlock(&queueMutex);
 		}
 	}
+	// Mark directory processing as complete
+	pthread_mutex_lock(&queueMutex);
+	directoryProcessingDone = true;
+	pthread_cond_broadcast(&queueCond);		// Notify all threads to finish
+	pthread_mutex_unlock(&queueMutex);
+
+	// Wait for all threads to finish
+    for (int i = 0; i < THREADS; ++i) {
+        pthread_join(th[i], nullptr);
+    }
 }
 
 int main(int argc, char* argv[])
@@ -373,6 +442,6 @@ int main(int argc, char* argv[])
 
 	// // Draw the triangulation using CGAL's draw function
 	// CGAL::draw(cdt);
-	process_directory("instances/");
+	process_directory("challenge_instances/");
 	return 0;
 }
