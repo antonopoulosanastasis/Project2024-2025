@@ -25,7 +25,7 @@
 #include "custom_cdt.h"
 #include "case_identification.h"
 
-#define THREADS 5
+#define THREADS 8
 
 namespace json = boost::json;
 namespace fs = boost::filesystem;
@@ -207,8 +207,8 @@ void process_file(const string& filename) {
 	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
 	vector<Point_2> steiner2;
-	if(case_result == "A") {
-		int L = 60;
+	if(case_result == "B") {
+		int L = 100;
 		long double convergence_value = 0.0;
 		// cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
 		// cout << "triangulation before:" << endl;

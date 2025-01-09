@@ -36,15 +36,11 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 
 	while(temperature >= 0 && count_obtuse_angles(cdt, polygon)) {
 
-		vector<Face_handle> face_handles;
 		for (Face_handle face : cdt.finite_face_handles()) {
-			face_handles.push_back(face);
-		}
-		remove_faces_outside_boundary(face_handles, polygon);
-		remove_non_obtuse_faces(face_handles);
-
-		for(Face_handle face : face_handles) {
-
+			int obtuse_index = find_obtuse_angle_index(face);
+			if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
+				continue;
+			}
 			CDT triangulation = cdt;
 			int option = steiner_choice(gen);
 			Point steiner_point = choose_steiner(triangulation, polygon, option, face);
