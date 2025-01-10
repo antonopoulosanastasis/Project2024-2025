@@ -25,7 +25,7 @@
 #include "custom_cdt.h"
 #include "case_identification.h"
 
-#define THREADS 8
+#define THREADS 5
 
 namespace json = boost::json;
 namespace fs = boost::filesystem;
@@ -163,9 +163,6 @@ void process_file(const string& filename) {
 	json::array points_y = json_data["points_y"].as_array();
 	json::array region_boundary = json_data["region_boundary"].as_array();
 	json::array additional_constraints = json_data["additional_constraints"].as_array();
-	// bool delaunay = json_value.at("delaunay").as_bool();
-	// json::string method = json_value.at("method").as_string();
-	// boost::json::object parameters = json_value.at("parameters").as_object();
 
 	// Deserialize points and constraints
 	vector<Point> points = deserialize_points(points_x, points_y);
@@ -200,24 +197,15 @@ void process_file(const string& filename) {
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
 
-	// if (!delaunay) {
-	// 	brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
-	// }
-
 	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
 	vector<Point_2> steiner2;
-	if(case_result == "B") {
-		int L = 100;
+	if(case_result == "E") {
+		int L = 200;
 		long double convergence_value = 0.0;
-		// cout << filename << "\t\t" << instance_uid << "\t\t" << case_result << endl;
-		// cout << "triangulation before:" << endl;
-		// cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
-		local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+		simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
 		int obtuse_after = count_obtuse_angles(cdt, polygon);
-		// cout << "triangulation after" << endl;
-		// cout << "Obtuse count: " << count_obtuse_angles(cdt, polygon) << endl;
 		int width = 25;  //
 
 		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
@@ -225,22 +213,6 @@ void process_file(const string& filename) {
 		
 	}
     
-	// double alpha = parameters.at("alpha").as_double();
-	// double beta = parameters.at("beta").as_double();
-	// int L = parameters.at("L").as_int64();
-	// simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
-	// double alpha = parameters.at("alpha").as_double();
-	// double beta = parameters.at("beta").as_double();
-	// double xi = parameters.at("xi").as_int64();
-	// double psi = parameters.at("psi").as_int64();
-	// double lambda = parameters.at("lambda").as_double();
-	// int kappa = parameters.at("kappa").as_int64();
-	// int L = parameters.at("L").as_int64();
-	// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
-
-	// cout << filename << "\t\t\t\t\t\t\t" << "\t\t\t\t" << case_result <<  endl;
-	
-	// CGAL::draw(cdt);
 }
 
 void* workerThread(void* arg) {

@@ -2,7 +2,7 @@ File:                                                                           
 challenge_instances/simple-polygon-exterior-20_10_6fbd9669.instance.json        6                        2                        4                        -0.81362                 8                        
 challenge_instances/simple-polygon-exterior-20_10_ce9152de.instance.json        9                        7                        2                        -0.192645                22                       
 challenge_instances/simple-polygon-exterior-20_20_4ddfa00e.instance.json        21                       13                       6                        -0.315563                42                       
-challenge_instances/simple-polygon-exterior-20_60_57858065.instance.json        66                       45                       19                       -0.219854                144.5                    
-challenge_instances/simple-polygon-exterior-20_100_512f0fc4.instance.json       65                       39                       22                       -0.303312                128                      
-challenge_instances/simple-polygon-exterior-20_100_8d1c2e30.instance.json       64                       37                       25                       -0.314113                123.5                    
-challenge_instances/simple-polygon-exterior-20_100_8ff7a64d.instance.json       109                      73                       30                       -0.208358                234                      
+challenge_instances/simple-polygon-exterior-20_100_512f0fc4.instance.json       65                       40                       21                       -0.290646                130.5                    
+challenge_instances/simple-polygon-exterior-20_60_57858065.instance.json        66                       45                       19                       -0.220955                144.5                    
+challenge_instances/simple-polygon-exterior-20_100_8d1c2e30.instance.json       64                       36                       25                       -0.33154                 120.5                    
+challenge_instances/simple-polygon-exterior-20_100_8ff7a64d.instance.json       109                      74                       27                       -0.205937                235.5                    

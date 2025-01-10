@@ -5,9 +5,9 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 	int iterations = 0;
 	int obtuse_count;
 	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
-
 	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
 		int best_obtuse_count = obtuse_count;
+		bool point_added_this_iteration = false;  // Track if we add a point in this iteration
 		for (Face_handle face : cdt.finite_face_handles()) {
 			int obtuse_index = find_obtuse_angle_index(face);
 			if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
@@ -30,6 +30,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(p_insert);
 					index[p_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted projection at iteration " << iterations << endl;
 					break;
 				}
@@ -44,6 +45,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(m_insert);
 					index[m_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted midpoint at iteration " << iterations << endl;
 					break;
 				}
@@ -57,6 +59,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(c_insert);
 					index[c_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted circumcenter at iteration " << iterations << endl;
 					break;
 				}
@@ -71,6 +74,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(ce_insert);
 					index[ce_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted centroid at iteration " << iterations << endl;
 					break;
 				}
@@ -84,6 +88,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(a_insert);
 					index[a_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted adjacent at iteration " << iterations << endl;
 					break;
 				}
@@ -98,11 +103,16 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					steiner.emplace_back(r_insert);
 					index[r_insert] = index.size();
 					obtuse_counts[steiner.size()] = best_obtuse_count;
+					point_added_this_iteration = true;
 					// cout << "Inserted random at iteration " << iterations << endl;
 					break;
 				}
 			}
 		}
+		// If no point was added in this iteration, exit the loop
+        if (!point_added_this_iteration) {
+            break;
+        }
 		iterations++;
 	}
 	convergence_value = calculate_convergence(obtuse_counts);

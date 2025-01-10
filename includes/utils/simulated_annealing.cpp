@@ -21,7 +21,7 @@ Point choose_steiner(CDT& cdt, const Polygon_2& polygon, int option, Face_handle
 	}
 }
 
-void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index, double& convergence) {
+void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steiner, double alpha, double beta, int L, map<Point, int>& index, long double& convergence) {
 	double energy = compute_energy(cdt, polygon, 0, alpha, beta);
 	double temperature = 1.0;
 	map<int,int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
