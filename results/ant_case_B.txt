@@ -1,0 +1,8 @@
+File:                                                                           Before                   After                    Steiner                  convergence_value        Energy                                  
+challenge_instances/simple-polygon-exterior-20_10_6fbd9669.instance.json        6                        2                        4                        0                        8                        
+challenge_instances/simple-polygon-exterior-20_10_ce9152de.instance.json        9                        6                        2                        0                        19                       
+challenge_instances/simple-polygon-exterior-20_20_4ddfa00e.instance.json        21                       15                       5                        -0.197997                47.5                     
+challenge_instances/simple-polygon-exterior-20_60_57858065.instance.json        66                       45                       16                       -0.258808                143                      
+challenge_instances/simple-polygon-exterior-20_100_8d1c2e30.instance.json       64                       50                       9                        -0.174719                154.5                    
+challenge_instances/simple-polygon-exterior-20_100_512f0fc4.instance.json       65                       44                       16                       -0.213981                140                      
+challenge_instances/simple-polygon-exterior-20_100_8ff7a64d.instance.json       109                      79                       24                       -0.183845                249                      

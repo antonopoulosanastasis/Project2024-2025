@@ -218,13 +218,14 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 }
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index) {
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index, long double& convergence_value) {
 
 	
 	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
 	// Assume random engine setup
 	random_device rd;
 	mt19937 gen(rd());
+	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
 	for (int cycle = 0; cycle < L; cycle++) {
 		map<Point, int> good_ants; // Tracks points and their associated methods
 		CDT cycle_best = cdt;
@@ -285,6 +286,7 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 				steiner.emplace_back(steiner_point);
 				index[steiner_point] = index.size();
 				good_ants[steiner_point] = method; // Record the method used for pheromone updates
+				obtuse_counts[steiner.size()] = count_obtuse_angles(cdt, polygon);
 			}
 		}
 
@@ -292,4 +294,5 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 		cdt = cycle_best;
 		update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);
 	}
+	convergence_value = calculate_convergence(obtuse_counts);
 }

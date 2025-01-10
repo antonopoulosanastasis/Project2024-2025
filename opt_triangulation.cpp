@@ -204,10 +204,11 @@ void process_file(const string& filename) {
 		int L = 200;
 		long double convergence_value = 0.0;
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
-		simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+		//simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+		//alpha = 3, beta = 0.5, xi = 1, psi = 3, lambda = 0.5
+		ant_colony_optimization(cdt, polygon, steiner2, 3, 0.5, 1, 3, 0.5, 50, 80, vertex_indices, convergence_value);
 		int obtuse_after = count_obtuse_angles(cdt, polygon);
-		int width = 25;  //
-
+		int width = 25;
 		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
 		  << setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
 		
@@ -249,7 +250,6 @@ void* workerThread(void* arg) {
 // Process all JSON files in a directory
 void process_directory(const string& directory_path) {
 	fs::path dir_path(directory_path);
-	// Process directory creates 10 threads through which, it scans 10 files at a time
 	pthread_t th[THREADS];
 	for(int i = 0; i < THREADS; i++) {
 		pthread_create(th + i, nullptr, &workerThread, nullptr);
@@ -262,7 +262,6 @@ void process_directory(const string& directory_path) {
 	}
 
 	int width = 25;
-	// cout << "File " << "\t\t\t\t\t\t\t" << "\t\t\t\tCase " << endl;
 	cout << left << setw(80) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
 		<< setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
