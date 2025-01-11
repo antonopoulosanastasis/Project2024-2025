@@ -24,15 +24,18 @@ def read_file(file_path):
     return data
 
 def shorten_instance_name(instance_name):
-    """Shorten the instance name for better readability in the plot and remove 'challenge_instances'."""
+    """Shorten the instance name to keep only the id-like part."""
     # Remove 'challenge_instances' from the instance name
     instance_name = instance_name.replace("challenge_instances/", "")
-    # Split by the '_' and take only the first two parts or truncate to the first 10 characters.
+    
+    # Remove the '.instance.json' extension
+    instance_name = instance_name.replace('.instance.json', '')
+    
+    # Find the id-like part by splitting the string at the underscore
     parts = instance_name.split('_')
-    if len(parts) > 1:
-        return parts[0] + '_' + parts[1]  # Take first two parts like 'point-set_10'
-    else:
-        return instance_name[:10]  # Truncate to first 10 characters if no '_'
+    
+    # Return the last part (id-like part) starting with '_'
+    return parts[-1]  # Keep the id-like part (e.g., 'f999dc7f')
 
 def plot_case_performance(case_name, local_data, sa_data, ant_data):
     """Generate and display a bar plot comparing the performance of the methods for the given case."""
@@ -72,6 +75,17 @@ def compare_methods_for_all_cases(case_names, methods_dir):
         local_data = read_file(os.path.join(methods_dir, f'local_{case_name}.txt'))
         sa_data = read_file(os.path.join(methods_dir, f'sa_{case_name}.txt'))
         ant_data = read_file(os.path.join(methods_dir, f'ant_{case_name}.txt'))
+
+        # Calculate total energy for each method
+        total_local_energy = sum(entry['energy'] for entry in local_data)
+        total_sa_energy = sum(entry['energy'] for entry in sa_data)
+        total_ant_energy = sum(entry['energy'] for entry in ant_data)
+
+        # Print total energy for each method
+        print(f"Total Energy for {case_name}:")
+        print(f"  Local: {total_local_energy:.2f}")
+        print(f"  SA: {total_sa_energy:.2f}")
+        print(f"  Ant: {total_ant_energy:.2f}")
 
         # Plot performance comparison for each case
         plot_case_performance(case_name, local_data, sa_data, ant_data)
