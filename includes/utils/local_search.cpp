@@ -5,6 +5,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 	int iterations = 0;
 	int obtuse_count;
 	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
+	int random_points = count_obtuse_angles(cdt, polygon) / 4;
 	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
 		int best_obtuse_count = obtuse_count;
 		bool point_added_this_iteration = false;  // Track if we add a point in this iteration
@@ -19,7 +20,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 			CDT cdt_centroid = cdt;
 			CDT cdt_adjacent = cdt;
 			CDT cdt_random = cdt;
-			CDT best_triangulation = cdt;
+
 			Point p_insert = steiner_projection_at_face(face, polygon);
 			if( !((p_insert.x() == 0.5) && (p_insert.y() == 0.5))) {
 				cdt_projection.insert(p_insert);
@@ -93,25 +94,33 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					break;
 				}
 			}
-			Point r_insert = steiner_random_at_face(face, polygon);
-			if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
-				cdt_random.insert(r_insert);
-				int new_obtuse_count = count_obtuse_angles(cdt_random, polygon);
-				if (new_obtuse_count < best_obtuse_count) {
-					cdt = cdt_random;
-					best_obtuse_count = new_obtuse_count;
-					steiner.emplace_back(r_insert);
-					index[r_insert] = index.size();
-					obtuse_counts[steiner.size()] = best_obtuse_count;
-					point_added_this_iteration = true;
-					// cout << "Inserted random at iteration " << iterations << endl;
-					break;
+		}
+		// If no point was added in this iteration, add random point
+        if (!point_added_this_iteration) {
+			if(random_points > 0) {
+				for (Face_handle face : cdt.finite_face_handles()) {
+					int obtuse_index = find_obtuse_angle_index(face);
+					if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
+						continue;
+					}
+					CDT cdt_random = cdt;
+					Point r_insert = steiner_random_at_face(face, polygon);
+					if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
+						cdt_random.insert(r_insert);
+						int new_obtuse_count = count_obtuse_angles(cdt_random, polygon);
+						cdt = cdt_random;
+						best_obtuse_count = new_obtuse_count;
+						steiner.emplace_back(r_insert);
+						index[r_insert] = index.size();
+						obtuse_counts[steiner.size()] = best_obtuse_count;
+						random_points--;
+						break;
+					}
 				}
 			}
-		}
-		// If no point was added in this iteration, exit the loop
-        if (!point_added_this_iteration) {
-            break;
+			else{
+            	break;
+			}
         }
 		iterations++;
 	}

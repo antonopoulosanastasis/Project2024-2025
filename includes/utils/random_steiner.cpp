@@ -31,7 +31,7 @@ Point steiner_random_at_face(Face_handle& face, const Polygon_2& polygon) {
     Point centroid = get_centroid(face);
 
     if (is_point_outside_polygon(polygon, centroid)) {
-        return Point();
+        return Point(0.5, 0.5);
     }
 
     // Function to calculate the distance between a point and a line segment

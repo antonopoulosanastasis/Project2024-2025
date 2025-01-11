@@ -200,13 +200,14 @@ void process_file(const string& filename) {
 	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 
 	vector<Point_2> steiner2;
-	if(case_result == "E") {
+	if(case_result == "B") {
 		int L = 200;
 		long double convergence_value = 0.0;
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
 		//simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
 		//alpha = 3, beta = 0.5, xi = 1, psi = 3, lambda = 0.5
-		ant_colony_optimization(cdt, polygon, steiner2, 3, 0.5, 1, 3, 0.5, 50, 80, vertex_indices, convergence_value);
+		//ant_colony_optimization(cdt, polygon, steiner2, 3, 0.5, 1, 3, 0.5, 50, 80, vertex_indices, convergence_value);
+		local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
 		int obtuse_after = count_obtuse_angles(cdt, polygon);
 		int width = 25;
 		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
