@@ -37,12 +37,13 @@ def shorten_instance_name(instance_name):
     # Return the last part (id-like part) starting with '_'
     return parts[-1]  # Keep the id-like part (e.g., 'f999dc7f')
 
-def plot_case_performance(case_name, local_data, sa_data, ant_data):
+def plot_case_performance(case_name, local_data, local_rand_data):
     """Generate and display a bar plot comparing the performance of the methods for the given case."""
     instances = [shorten_instance_name(entry['instance']) for entry in local_data]  # Shorten instance names
     local_energies = [entry['energy'] for entry in local_data]
-    sa_energies = [entry['energy'] for entry in sa_data]
-    ant_energies = [entry['energy'] for entry in ant_data]
+    #sa_energies = [entry['energy'] for entry in sa_data]
+    #ant_energies = [entry['energy'] for entry in ant_data]
+    local_rand_energies = [entry['energy'] for entry in local_rand_data]
 
     # Create a bar chart
     x = range(len(instances))  # X positions for the bars
@@ -52,8 +53,9 @@ def plot_case_performance(case_name, local_data, sa_data, ant_data):
 
     # Create bars for each method
     plt.bar([i - width for i in x], local_energies, width=width, label='Local', color='b')
-    plt.bar([i for i in x], sa_energies, width=width, label='SA', color='g')
-    plt.bar([i + width for i in x], ant_energies, width=width, label='Ant', color='r')
+    #plt.bar([i for i in x], sa_energies, width=width, label='SA', color='g')
+    #plt.bar([i + width for i in x], ant_energies, width=width, label='Ant', color='r')
+    plt.bar([i for i in x], local_rand_energies, width=width, label='Local Rand', color='g')
 
     # Labels and title
     plt.xlabel('Instance')
@@ -73,22 +75,26 @@ def compare_methods_for_all_cases(case_names, methods_dir):
 
         # Read data for each method
         local_data = read_file(os.path.join(methods_dir, f'local_{case_name}.txt'))
-        sa_data = read_file(os.path.join(methods_dir, f'sa_{case_name}.txt'))
-        ant_data = read_file(os.path.join(methods_dir, f'ant_{case_name}.txt'))
+        #sa_data = read_file(os.path.join(methods_dir, f'sa_{case_name}.txt'))
+        #ant_data = read_file(os.path.join(methods_dir, f'ant_{case_name}.txt'))
+        local_rand_data = read_file(os.path.join(methods_dir, f'local_rand_{case_name}.txt'))
 
         # Calculate total energy for each method
         total_local_energy = sum(entry['energy'] for entry in local_data)
-        total_sa_energy = sum(entry['energy'] for entry in sa_data)
-        total_ant_energy = sum(entry['energy'] for entry in ant_data)
+        #total_sa_energy = sum(entry['energy'] for entry in sa_data)
+        #total_ant_energy = sum(entry['energy'] for entry in ant_data)
+        total_local_rand_energy = sum(entry['energy'] for entry in local_rand_data)
 
         # Print total energy for each method
         print(f"Total Energy for {case_name}:")
         print(f"  Local: {total_local_energy:.2f}")
-        print(f"  SA: {total_sa_energy:.2f}")
-        print(f"  Ant: {total_ant_energy:.2f}")
+        #print(f"  SA: {total_sa_energy:.2f}")
+        #print(f"  Ant: {total_ant_energy:.2f}")
+        print(f"  Local Rand: {total_local_rand_energy:.2f}")
 
         # Plot performance comparison for each case
-        plot_case_performance(case_name, local_data, sa_data, ant_data)
+        #plot_case_performance(case_name, local_data, sa_data, ant_data)
+        plot_case_performance(case_name, local_data, local_rand_data)
 
 if __name__ == "__main__":
     # Define the directory where the files are located
