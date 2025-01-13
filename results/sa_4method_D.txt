@@ -1,0 +1,14 @@
+File:                                                                           Before                   After                    Steiner                  convergence_value        Energy                                  
+challenge_instances/ortho_20_e2aff192.instance.json                             6                        0                        14                       -1.19382                 7                        
+challenge_instances/ortho_60_5c5796a0.instance.json                             31                       5                        78                       -1.0626                  54                       
+challenge_instances/ortho_40_df58ce3b.instance.json                             13                       2                        37                       -1.31458                 24.5                     
+challenge_instances/ortho_20_5a9e8244.instance.json                             9                        1                        19                       -1.60332                 12.5                     
+challenge_instances/ortho_10_d2723dcc.instance.json                             4                        1                        4                        -0.90317                 5                        
+challenge_instances/ortho_100_bd1e4a14.instance.json                            43                       19                       91                       -0.325236                102.5                    
+challenge_instances/ortho_60_c423f527.instance.json                             27                       5                        56                       -1.00756                 43                       
+challenge_instances/ortho_80_06ee55d4.instance.json                             36                       13                       113                      -0.557532                95.5                     
+challenge_instances/ortho_250_6e6a66c2.instance.json                            122                      35                       173                      -0.696394                191.5                    
+challenge_instances/ortho_60_f744490d.instance.json                             23                       10                       70                       -0.3833                  65                       
+challenge_instances/ortho_250_3b977f7e.instance.json                            109                      43                       161                      -0.517455                209.5                    
+challenge_instances/ortho_40_56a6f463.instance.json                             23                       2                        63                       -1.53985                 37.5                     
+challenge_instances/ortho_150_53eb4022.instance.json                            56                       27                       111                      -0.330762                136.5                    
