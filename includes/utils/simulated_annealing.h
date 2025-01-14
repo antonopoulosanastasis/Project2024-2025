@@ -13,6 +13,7 @@
 #include "centroid.h"
 #include "adjacent.h"
 #include "convergence.h"
+#include "random_steiner.h"
 
 using namespace std;
 

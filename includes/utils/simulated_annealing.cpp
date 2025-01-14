@@ -35,7 +35,13 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 	// Range [1,5] for random int generator in order to choose steiner point method
 	uniform_int_distribution<int> steiner_choice(1, 5);
 
+	int iteration_without_insertion = 0; // Counter for iterations without insertion
+    const int max_iterations_without_insertion = 10; // Threshold for choosing a random face
+	int random_points = count_obtuse_angles(cdt, polygon) / 4; // Number of random points to insert
+
 	while(temperature > 0 && count_obtuse_angles(cdt, polygon)) {
+
+		bool steiner_inserted = false; // Track if a Steiner point was inserted this iteration
 
 		for (Face_handle face : cdt.finite_face_handles()) {
 			int obtuse_index = find_obtuse_angle_index(face);
@@ -69,9 +75,39 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 				index[steiner_point] = index.size();
 				int best_obtuse_count = count_obtuse_angles(cdt, polygon);
 				obtuse_counts[steiner.size()] = best_obtuse_count;
+
+				steiner_inserted = true; // Steiner point was inserted
+                iteration_without_insertion = 0; // Reset the counter
 				break;
 			}
 		}
+
+		if (!steiner_inserted) {
+            iteration_without_insertion++;
+        }
+
+		// If no Steiner point has been inserted for max_iterations_without_insertion, insert one randomly
+        if (iteration_without_insertion >= max_iterations_without_insertion) {
+			if(random_points > 0) {
+				for (Face_handle face : cdt.finite_face_handles()) {
+					int obtuse_index = find_obtuse_angle_index(face);
+					if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
+						continue;
+					}
+					Point random_steiner_point = steiner_random_at_face(face, polygon);
+					if (random_steiner_point != Point(0.5, 0.5)) {
+						cdt.insert(random_steiner_point);
+						steiner.emplace_back(random_steiner_point);
+						index[random_steiner_point] = index.size();
+						int best_obtuse_count = count_obtuse_angles(cdt, polygon);
+						obtuse_counts[steiner.size()] = best_obtuse_count;
+						random_points--;
+						iteration_without_insertion = 0; // Reset the counter
+						break;
+					}
+				}
+			}
+        }
 		temperature -= (1.0 / L);
 	}
 	convergence =  calculate_convergence(obtuse_counts);
