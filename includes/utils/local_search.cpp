@@ -103,13 +103,15 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
 						continue;
 					}
-					CDT cdt_random = cdt;
 					Point r_insert = steiner_random_at_face(face, polygon);
 					if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
-						cdt_random.insert(r_insert);
-						int new_obtuse_count = count_obtuse_angles(cdt_random, polygon);
-						cdt = cdt_random;
-						best_obtuse_count = new_obtuse_count;
+						// make sure we dont insert a point out of bounds
+						// as the offset could set the centroid out of bounds
+						if(is_point_outside_polygon(polygon, r_insert)) {
+							r_insert = get_centroid(face);
+						}
+						cdt.insert(r_insert);
+						best_obtuse_count = count_obtuse_angles(cdt, polygon);
 						steiner.emplace_back(r_insert);
 						index[r_insert] = index.size();
 						obtuse_counts[steiner.size()] = best_obtuse_count;

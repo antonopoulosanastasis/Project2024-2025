@@ -96,6 +96,9 @@ void simulated_annealing_opt(CDT& cdt, Polygon_2& polygon, vector<Point>& steine
 					}
 					Point random_steiner_point = steiner_random_at_face(face, polygon);
 					if (random_steiner_point != Point(0.5, 0.5)) {
+						if(is_point_outside_polygon(polygon, random_steiner_point)) {
+							random_steiner_point = get_centroid(face);
+						}
 						cdt.insert(random_steiner_point);
 						steiner.emplace_back(random_steiner_point);
 						index[random_steiner_point] = index.size();

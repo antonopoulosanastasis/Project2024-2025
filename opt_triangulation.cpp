@@ -145,7 +145,7 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 }
 
 // Process a single file
-void process_file(const string& filename) {
+void process_file(const string& filename, bool preselected, string output_file = "directory_test.txt") {
 	ifstream in_file(filename);
 	if (!in_file) {
 		cerr << "Error: Could not open file " << filename << endl;
@@ -183,7 +183,6 @@ void process_file(const string& filename) {
 	for (size_t i = 0; i < polygon.size(); ++i) {
 		cdt.insert_constraint(polygon[i], polygon[(i + 1) % polygon.size()]);
 	}
-
 	// Initialize point indexes
 	map<Point, int> vertex_indices;
 	// Insert points into the triangulation 
@@ -196,25 +195,93 @@ void process_file(const string& filename) {
 	for (const auto& constraint : constraints) {
 		cdt.insert_constraint(points[constraint.first], points[constraint.second]);
 	}
-
-	string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
-
 	vector<Point_2> steiner2;
-	if(case_result == "E") {
+	long double convergence_value = 0.0;
+	if(preselected) {
+		json::string method;
+		string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
 		int L = 200;
-		long double convergence_value = 0.0;
+		double alpha = 3, beta = 0.5;
+		int xi = 1, psi = 3;
+		double lambda = 0.5;
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
-		simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-		//alpha = 3, beta = 0.5, xi = 1, psi = 3, lambda = 0.5
-		//ant_colony_optimization(cdt, polygon, steiner2, 3, 0.5, 1, 3, 0.5, 50, 80, vertex_indices, convergence_value);
-		//local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+		if(case_result == "A") {
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			method = "local";
+		} else if (case_result == "B") {
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			method = "local";
+		} else if (case_result == "C") {
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			method = "local";
+		} else if (case_result == "D") {
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			method = "local";
+		} else {
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			method = "local";
+		}
+		
+		boost::json::object parameters = {
+			{"alpha", 3E0},
+        	{"beta", 5E-1},
+			{"xi", 1},
+			{"psi", 3},
+			{"L", 200},
+			{"lambda", 6E-1},
+			{"kappa", 80}
+		};
 		int obtuse_after = count_obtuse_angles(cdt, polygon);
 		int width = 25;
 		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
 		  << setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
-		
+
+		// export_to_json(cdt, steiner2, output_file, instance_uid, vertex_indices, polygon, obtuse_after, method, parameters);
+
+	} else {
+		bool delaunay = json_value.at("delaunay").as_bool();
+		json::string method = json_value.at("method").as_string();
+		json::object parameters = json_value.at("parameters").as_object();
+		if (!delaunay) {
+			cout << "Delaunay is false" << '\n';
+			cout << "brute force for 4 steiner" << endl;
+			brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
+		}
+		if( method == "local" ) {
+			cout << "Using Local Search" << '\n';
+    		int L = parameters.at("L").as_int64();
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+		}
+		else if ( method == "sa" ) {
+			cout << "Using Simulated Annealing" << '\n';
+			double alpha = parameters.at("alpha").as_double();
+			double beta = parameters.at("beta").as_double();
+			int L = parameters.at("L").as_int64();
+			simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices, convergence_value);
+		} else if ( method == "ant" ) {
+			cout << "Using Ant Colony" << endl;
+			double alpha = parameters.at("alpha").as_double();
+			double beta = parameters.at("beta").as_double();
+			double xi = parameters.at("xi").as_int64();
+			double psi = parameters.at("psi").as_int64();
+			double lambda = parameters.at("lambda").as_double();
+			int kappa = parameters.at("kappa").as_int64();
+			int L = parameters.at("L").as_int64();
+			ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices, convergence_value);
+		} else {
+			throw invalid_argument("Invalid minimization option");
+		}
+		int obtuse_count = count_obtuse_angles(cdt, polygon);
+		steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
+		// export_to_json(cdt, steiner, output_file, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
+	
 	}
-    
+	// CGAL::draw(cdt);
 }
 
 void* workerThread(void* arg) {
@@ -242,7 +309,7 @@ void* workerThread(void* arg) {
 		pthread_mutex_unlock(&queueMutex);
 
 		// Process the file
-		process_file(file);
+		process_file(file, true);
 	}
 
 	return nullptr;
@@ -288,133 +355,35 @@ void process_directory(const string& directory_path) {
 
 int main(int argc, char* argv[])
 {
+	// string input_file;
+    // string output_file;
+	// bool preselected = false;
 
-	// // Check arguments
-	// if (argc < 4) {
-	// 	cerr << "Error \n";
+	// // Parse command-line arguments
+	// for (int i = 1; i < argc; ++i) {
+	// 	string arg = argv[i];
+	// 	if (arg == "-i" && i + 1 < argc) {
+	// 		input_file = argv[++i];
+	// 	} else if (arg == "-o" && i + 1 < argc) {
+	// 		output_file = argv[++i];
+	// 	} else if (arg == "-preselected_params") {
+	// 		preselected = true;
+	// 	} else {
+	// 		cerr << "Error: Unexpected argument: " << arg << endl;
+	// 		return 1;
+	// 	}
+	// }
+	// // Validate -i flag and input file
+	// if (input_file.empty()) {
+	// 	cerr << "Error: Missing input file (-i)." << endl;
 	// 	return 1;
 	// }
-
-	// string filename, output;
-	// if((strcmp(argv[1], "-i") == 0) && (strcmp(argv[3], "-o") == 0)) {
-	// 	filename = argv[2];
-	// 	output = argv[4];
-	// }
-	// else if ((strcmp(argv[1], "-o") == 0) && (strcmp(argv[3], "-i") == 0)) {
-	// 	filename = argv[4];
-	// 	output = argv[2];
-	// }
-	
-	// // Read the file
-	// ifstream in_file(filename);
-	// if (!in_file) {
-	// 	cerr << "Error: Could not open file " << filename << endl;
+	// // Validate -o flag and output file
+	// if (output_file.empty()) {
+	// 	cerr << "Error: Missing output file (-o)." << endl;
 	// 	return 1;
 	// }
-
-	// stringstream buffer;
-	// buffer << in_file.rdbuf();
-	// json::value json_value = json::parse(buffer.str());
-
-	// // Extract data from the JSON
-	// json::object json_data = json_value.as_object();
-	// json::string instance_uid = json_data["instance_uid"].as_string();
-	// json::array points_x = json_data["points_x"].as_array();
-	// json::array points_y = json_data["points_y"].as_array();
-	// json::array region_boundary = json_data["region_boundary"].as_array();
-	// json::array additional_constraints = json_data["additional_constraints"].as_array();
-	// bool delaunay = json_value.at("delaunay").as_bool();
-	// json::string method = json_value.at("method").as_string();
-	// boost::json::object parameters = json_value.at("parameters").as_object();
-
-	// // Deserialize points and constraints
-	// vector<Point> points = deserialize_points(points_x, points_y);
-	// vector<pair<int, int>> constraints = deserialize_constraints(additional_constraints);
-
-	// // Initialize the Constrained Delaunay Triangulation (CDT)
-	// CDT cdt;
-	// vector<Point_2> steiner;
-	// vector<int> boundary_vector;
-
-	// // Construct the polygon using the region_boundary indices
-	// Polygon_2 polygon;
-	// for (const auto& idx : region_boundary) {
-	// 	polygon.push_back(points[idx.as_int64()]);
-	// 	boundary_vector.push_back(idx.as_int64());
-	// }
-
-	// for (size_t i = 0; i < polygon.size(); ++i) {
-	// 	cdt.insert_constraint(polygon[i], polygon[(i + 1) % polygon.size()]);
-	// }
-
-	// // Initialize point indexes
-	// map<Point, int> vertex_indices;
-	// // Insert points into the triangulation 
-	// for (const Point& p : points) {
-	// 	cdt.insert(p);
-	// 	vertex_indices[p] = vertex_indices.size();
-	// }
-
-	// // Insert constrained edges based on the provided indices
-	// for (const auto& constraint : constraints) {
-	// 	cdt.insert_constraint(points[constraint.first], points[constraint.second]);
-	// }
-    
-	// if (is_obtuse_triangulation(cdt)) {
-	// 	cout << "The triangulation contains at least one obtuse triangle.\n";
-	// } else {
-	// 	cout << "All triangles in the triangulation are acute or right-angled.\n";
-	// }
-
-	// cout << "Obtuse angle count: "<< count_obtuse_angles(cdt, polygon) << '\n';
-
-	// if (!delaunay) {
-	// 	cout << "Delaunay is false" << '\n';
-	// 	cout << "brute force for 4 steiner" << endl;
-	// 	brute_force_steiner_insertion(cdt, 4, polygon, steiner, vertex_indices);
-	// }
-
-	// string result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
-
-	// vector<Point_2> steiner2;
-
-	// if( method == "local" ) {
-	// 	cout << "Using Local Search" << '\n';
-    // 	int L = parameters.at("L").as_int64();
-	// 	local_search_opt(cdt, polygon, L, steiner2, vertex_indices);
-	// }
-	// else if ( method == "sa" ) {
-	// 	cout << "Using Simulated Annealing" << '\n';
-	// 	double alpha = parameters.at("alpha").as_double();
-	// 	double beta = parameters.at("beta").as_double();
-	// 	int L = parameters.at("L").as_int64();
-	// 	simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices);
-	// } else if ( method == "ant" ) {
-	// 	cout << "Using Ant Colony" << endl;
-	// 	double alpha = parameters.at("alpha").as_double();
-	// 	double beta = parameters.at("beta").as_double();
-	// 	double xi = parameters.at("xi").as_int64();
-	// 	double psi = parameters.at("psi").as_int64();
-	// 	double lambda = parameters.at("lambda").as_double();
-	// 	int kappa = parameters.at("kappa").as_int64();
-	// 	int L = parameters.at("L").as_int64();
-	// 	ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices);
-	// } else {
-	// 	throw invalid_argument("Invalid minimization option");
-	// }
-
-	// int obtuse_count = count_obtuse_angles(cdt, polygon);
-
-	// cout << "Obtuse angle count: "<< obtuse_count << '\n';
-
-	// steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
-
-	// export_to_json(cdt, steiner, output, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
-
-	// cout << "steiner points added: " << steiner.size() << endl;
-
-	// // Draw the triangulation using CGAL's draw function
-	// CGAL::draw(cdt);
+	// process_file(input_file, preselected, output_file);
 	process_directory("challenge_instances/");
 	return 0;
 }
