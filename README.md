@@ -16,11 +16,15 @@ root/
 │    ├── ant_colony.h
 │    ├── brute_force.cpp
 │    ├── brute_force.h
+│    ├── case_identification.cpp
+│    ├── case_identification.h
 │    ├── centroid.cpp
 │    ├── centroid.h
 │    ├── circumcenter.cpp
 │    ├── circumcenter.h
 │    ├── CMakeLists.txt
+│    ├── convergence.cpp
+│    ├── convergence.h
 │    ├── custom_cdt.h 
 │    ├── definitions.h 
 │    ├── local_search.cpp
@@ -31,10 +35,14 @@ root/
 │    ├── obtuse.h
 │    ├── projection.cpp
 │    ├── projection.h
+│    ├── random_steiner.cpp
+│    ├── random_steiner.h
 │    ├── simulated_annealing.cpp
 │    └── simulated_annealing.h
 ├── CMakeLists.txt
 ├── README.md
+├── script.py
+├── verifier.py
 └── opt_triangulation.cpp
 
 Κώδικας στα αρχεία:
@@ -60,7 +68,9 @@ make
 
 θα δημιουργήσει με τη σειρά του το εκτελέσιμο αρχείο. Το εκτελέσιμο αρχείο τρέχει με το εξής format:
 
-./opt_triangulation -i <path_to_input.json> -o <path_to_output.json>
+./opt_triangulation -i <path_to_input.json> -o <path_to_output.json> -preselected_params
+
+με το flag -preselected_params να είναι προαιρετικό. Αν δεν δωθεί τη στιγμή της εκτέλεσης, το πρόγραμμα θα διαβάσει τις παραμέτρους από το αρχείο input.json
 
 Περιγραφή της υλοποίησης:
 Αρχικά η υλοποίηση ξεκινάει με Constrained Delaunay Triangulation (CDT).
@@ -103,8 +113,6 @@ make
 
 Η συνάρτηση local_search_opt λειτουργεί ως εξής:
 
-Όσο έχει ακόμα επαναλήψεις και υπάρχουν αμβλυγώνια, βρίσκει όλα τα αμβλυγώνια τρίγωνα.
-
 Για κάθε αμβλυγώνιο τρίγωνο, δημιουργεί μια αντιγραφή της τριγωνοποίησης για κάθε μέθοδο.
 
 Έπειτα, εισάγει το steiner της μεθόδου στην αντίστοιχη τριγωνοποίηση.
@@ -141,7 +149,7 @@ ant colony optimization: Λειτουργεί ως εξής:
 
 Για κάθε κύκλο, βρίσκει όλα τα αμβλυγώνια.
 
-Για κάθε μυρμήγκι, πάει σε διαφορετικό αμβλυγώνιο και εφαρμόζει την improve triangulation
+Για κάθε μυρμήγκι, γίνεται η ανάθεση ενός τυχαίου αμβλυγωνίου και εφαρμόζεται η improve triangulation
 
 Έπειτα την κάνει evaluate. Αν βελτίωσε, το μυρμήγκι μπαίνει στα μυρμήγκια που βελτίωσαν.
 
@@ -151,50 +159,16 @@ ant colony optimization: Λειτουργεί ως εξής:
 
 Τέλος, ενημερώνονται οι φερομόνες.
  
+Από το δεύτερο παραδοτέο, έχουν αλλάξει τα εξής:
 
-Στον φάκελο instances συμπεριλαμβάνονται κάποια από τα test instances που δόθηκαν και ο κώδικας συγκλίνει/μειώνει σημαντικά τις αμβλείες.
-
-Αποτελέσματα:
-
-	instance			Local Search			Simulated Annealing				Ant colony
-<obtuse, steiner>		<obtuse, steiner>			<obtuse, steiner>			<obtuse, steiner>
-
-instance_2.json			
-	<2, 0>				<0 , 3>					<0 , 3>					<1, 1>
-
-instance_3.json
-	<4, 0>				<0, 3>					<0, 2>					<0, 4>
-
-instance_4.json
-	<10, 0>				<5, 30>					<3, 11>					<10, 0>
-
-instance_5.json
-	<10, 0>				<0, 13>					<0, 17>					<10, 0>
-
-instance_test_1.json
-	<5, 0>				<0, 10>					<0, 5>					<0, 5>
-
-instance_test_2.json
-	<5, 0>				<0, 9>					<0, 4>					<0, 5>
-
-instance_test_3.json
-	<5, 0>				<0, 9>					<0, 5>					<0, 5>
-
-instance_test_4.json
-	<2, 0>				<0, 1>					<0, 1>					<0, 2>
-
-instance_test_5.json
-	<3, 0>				<0, 3>					<0, 3>					<0, 3>
-
-Τα παραπάνω τρέξανε με παραμέτρους:
-"parameters": {
-        "alpha": 4.0,
-        "beta": 0.8,
-        "xi": 1,
-        "psi": 5,
-        "L": 50,
-		"lambda": 0.6,
-		"kappa": 20
-	}
-Ωστόσο στο instance_4.json η local_search, αξίζει να σημειωθεί πως για αριθμό επαναλήψεων μεγαλύτερο του 35 αργεί.
-Αυτό οφείλεται στο γεγονός ότι σε κάθε επάναληψη απομονώνει τα obtuse faces.
+Προσθήκη αρχείων convergence, random_steiner, case_identification. Τα αρχείο convergence είναι υπεύθυνα για τον υπολογισμό του ρυθμού σύγκλισης των αλγορίθμων βελτιστοποίσης. Τα αρχεία random_steiner έχουν μια μέθοδο εισαγωγής σημείου steiner η οποία λειτουργεί ως εξής: Υπολογίζεται το centroid του εκάστοτε obtuse face και δίνεται ένα offset στο σημείο αυτό. Αν το νεό σημείο που προκύπτει είναι εκτός boundary, κρατάμε το centroid. Τέλος τα αρχεία case_identification είναι υπεύθυνα να βρίσκουν σε ποια κατηγορία εντάσσεται ένα αρχείο εισόδου από τις εξής κατηγορίες.
+Α. Κυρτό boundary (που ταυτίζεται με το Κυρτό Περίβλημα ) χωρίς περιορισμούς.
+Β. Κυρτό boundary με «ανοιχτούς» περιορισμούς.
+Γ. Κυρτό boundary με περιορισμούς που αποτελούν ακμές πολυγώνων που σχηματίζονται εντός του boundary, συμπεριλαμβανομένων των ακμών που βρίσκονται επί του boundary («κλειστοί περιορισμοί»).
+Δ. Μη κυρτό boundary με ευθύγραμμα τμήματα παράλληλα στους άξονες χωρίς περιορισμούς.
+Ε. Μη κυρτό boundary, ακανόνιστο, που δεν εντάσσεται στις κατηγορίες Α-Δ. 
+Επίσης προστέθηκαν τα εξής directories και αρχεία:
+challenge_instances/: περιέχει τα instances του διαγωνισμού.
+output/: περιέχει τα output files που παράγονται από την εκτέλεση του προγράμματος για κάθε ένα αρχείο του challenge_instances/
+script.py: Χρησιμοποιήθηκε για να παραχθούν τα διαγράμματα του report.
+verifier.py: Χρησιμοποιήθηκε για να επαληθευτούν οι λύσεις που υπάρχουν στα output.json files του output/
