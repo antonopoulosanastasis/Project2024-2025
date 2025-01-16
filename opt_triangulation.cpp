@@ -146,7 +146,7 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 }
 
 // Process a single file
-void process_file(const string& filename, bool preselected, string output_file = "directory_test.txt") {
+void process_file(const string& filename, bool preselected, string output_file) {
 	ifstream in_file(filename);
 	if (!in_file) {
 		cerr << "Error: Could not open file " << filename << endl;
@@ -217,27 +217,27 @@ void process_file(const string& filename, bool preselected, string output_file =
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
 		if(case_result == "A") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else if (case_result == "B") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else if (case_result == "C") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else if (case_result == "D") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		}
@@ -325,8 +325,26 @@ void* workerThread(void* arg) {
 
 		pthread_mutex_unlock(&queueMutex);
 
+		// Read the input JSON file
+		ifstream inputFile(file);
+        if (!inputFile) {
+			throw runtime_error("Failed to open input file: " + file);
+		}
+
+		stringstream buffer;
+		buffer << inputFile.rdbuf();
+		inputFile.close();
+
+		// Parse the JSON content
+		json::value parsed = json::parse(buffer.str());
+		json::object obj = parsed.as_object();
+
+		string instance_uid = obj["instance_uid"].as_string().c_str();
+
+		string output = "output/" + instance_uid + ".output.json";
+
 		// Process the file
-		process_file(file, true);
+		process_file(file, true, output);
 	}
 
 	return nullptr;
@@ -334,6 +352,10 @@ void* workerThread(void* arg) {
 
 // Process all JSON files in a directory
 void process_directory(const string& directory_path) {
+	// Create output directory (do nothing if it already exists)
+	string outputDir = "output";
+	fs::create_directories(outputDir);
+
 	fs::path dir_path(directory_path);
 	pthread_t th[THREADS];
 	for(int i = 0; i < THREADS; i++) {
@@ -346,9 +368,9 @@ void process_directory(const string& directory_path) {
 		return;
 	}
 
-	int width = 25;
-	cout << left << setw(80) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
-		<< setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
+	// int width = 25;
+	// cout << left << setw(80) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
+		// << setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
 		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {
 			string file = entry.path().string();
@@ -372,35 +394,35 @@ void process_directory(const string& directory_path) {
 
 int main(int argc, char* argv[])
 {
-	// string input_file;
-    // string output_file;
-	// bool preselected = false;
+	string input_file;
+    string output_file;
+	bool preselected = false;
 
-	// // Parse command-line arguments
-	// for (int i = 1; i < argc; ++i) {
-	// 	string arg = argv[i];
-	// 	if (arg == "-i" && i + 1 < argc) {
-	// 		input_file = argv[++i];
-	// 	} else if (arg == "-o" && i + 1 < argc) {
-	// 		output_file = argv[++i];
-	// 	} else if (arg == "-preselected_params") {
-	// 		preselected = true;
-	// 	} else {
-	// 		cerr << "Error: Unexpected argument: " << arg << endl;
-	// 		return 1;
-	// 	}
-	// }
-	// // Validate -i flag and input file
-	// if (input_file.empty()) {
-	// 	cerr << "Error: Missing input file (-i)." << endl;
-	// 	return 1;
-	// }
-	// // Validate -o flag and output file
-	// if (output_file.empty()) {
-	// 	cerr << "Error: Missing output file (-o)." << endl;
-	// 	return 1;
-	// }
-	// process_file(input_file, preselected, output_file);
-	process_directory("challenge_instances/");
+	// Parse command-line arguments
+	for (int i = 1; i < argc; ++i) {
+		string arg = argv[i];
+		if (arg == "-i" && i + 1 < argc) {
+			input_file = argv[++i];
+		} else if (arg == "-o" && i + 1 < argc) {
+			output_file = argv[++i];
+		} else if (arg == "-preselected_params") {
+			preselected = true;
+		} else {
+			cerr << "Error: Unexpected argument: " << arg << endl;
+			return 1;
+		}
+	}
+	// Validate -i flag and input file
+	if (input_file.empty()) {
+		cerr << "Error: Missing input file (-i)." << endl;
+		return 1;
+	}
+	// Validate -o flag and output file
+	if (output_file.empty()) {
+		cerr << "Error: Missing output file (-o)." << endl;
+		return 1;
+	}
+	process_file(input_file, preselected, output_file);
+	// process_directory("challenge_instances/");
 	return 0;
 }
