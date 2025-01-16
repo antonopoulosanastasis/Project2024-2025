@@ -28,6 +28,6 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 						 Polygon_2& polygon, vector<Point_2>& steiner);
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index, long double& convergence_value);
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index, long double& convergence_value, bool random);
 
 #endif // ANT_COLONY_H

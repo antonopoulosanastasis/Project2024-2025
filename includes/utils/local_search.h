@@ -15,6 +15,6 @@
 
 using namespace std;
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value);
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value, bool random);
 
 #endif // LOCAL_SEARCH_H

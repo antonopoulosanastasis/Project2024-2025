@@ -1,11 +1,17 @@
 #include "local_search.h"
 
 
-void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value) {
+void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<Point>& steiner, map<Point, int>& index, long double& convergence_value, bool random) {
 	int iterations = 0;
 	int obtuse_count;
 	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
-	int random_points = count_obtuse_angles(cdt, polygon) / 4;
+	int random_points;
+	if(random) {
+		random_points = count_obtuse_angles(cdt,polygon) / 4;
+	}
+	else {
+		random_points = 0;
+	}
 	while ( (obtuse_count = count_obtuse_angles(cdt, polygon)) && iterations < max_iterations) {
 		int best_obtuse_count = obtuse_count;
 		bool point_added_this_iteration = false;  // Track if we add a point in this iteration
@@ -51,7 +57,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					break;
 				}
 			}
-			Point c_insert = steiner_circumcenter_at_face(cdt_circumcenter, face, polygon);
+			/*Point c_insert = steiner_circumcenter_at_face(cdt_circumcenter, face, polygon);
 			if( !((c_insert.x() == 0.5) && (c_insert.y() == 0.5))) {
 				int new_obtuse_count = count_obtuse_angles(cdt_circumcenter, polygon);
 				if (new_obtuse_count < best_obtuse_count) {
@@ -93,7 +99,7 @@ void local_search_opt(CDT& cdt, Polygon_2& polygon, int max_iterations, vector<P
 					// cout << "Inserted adjacent at iteration " << iterations << endl;
 					break;
 				}
-			}
+			}*/
 		}
 		// If no point was added in this iteration, add random point
         if (!point_added_this_iteration) {

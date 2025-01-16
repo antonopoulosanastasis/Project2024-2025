@@ -94,7 +94,7 @@ string rational_to_string(const K::FT& coord) {
 } 
 
 // Function to create output.json
-void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Point, int>& vertex_indices, const Polygon_2 polygon, int obtuse_count, boost::json::string method, boost::json::object parameters) {
+void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filename, json::string& instance_uid, map<Point, int>& vertex_indices, const Polygon_2 polygon, int obtuse_count, boost::json::string method, boost::json::object parameters, boost::json::value random) {
 	json::object json_output;
 	json::array steiner_points_x, steiner_points_y, edge_array;
 	vector<pair<int, int>> edges;
@@ -139,6 +139,7 @@ void export_to_json(const CDT& cdt, vector<Point_2>& points, const string& filen
 	json_output["obtuse_count"] = obtuse_count;
 	json_output["method"] = method;
 	json_output["parameters"] = parameters;
+	json_output["randomization"] = random;
 
 	ofstream file(filename);
 	file << json::serialize(json_output);
@@ -197,6 +198,15 @@ void process_file(const string& filename, bool preselected, string output_file =
 	}
 	vector<Point_2> steiner2;
 	long double convergence_value = 0.0;
+
+	bool random = false;
+	boost::json::value randomization;
+	if(random) {
+		randomization = true;
+	}
+	else {
+		randomization = false;
+	}
 	if(preselected) {
 		json::string method;
 		string case_result = identify_case(cdt, polygon, json_data["num_constraints"].as_int64(), constraints, boundary_vector, points);
@@ -206,29 +216,29 @@ void process_file(const string& filename, bool preselected, string output_file =
 		double lambda = 0.5;
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
 		if(case_result == "A") {
-			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
-			method = "ant";
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
+			method = "local";
 		} else if (case_result == "B") {
-			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else if (case_result == "C") {
-			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else if (case_result == "D") {
-			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		} else {
-			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			//local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
+			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value, random);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value, random);
 			method = "local";
 		}
 		
@@ -241,14 +251,14 @@ void process_file(const string& filename, bool preselected, string output_file =
 			{"lambda", 6E-1},
 			{"kappa", 80}
 		};
-		if(case_result == "E") {
-			int obtuse_after = count_obtuse_angles(cdt, polygon);
+		int obtuse_after = count_obtuse_angles(cdt, polygon);
+		if(case_result == "C") {
 			int width = 25;
-			cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
-			<< setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
+			//cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
+			//<< setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
 		}
 
-		// export_to_json(cdt, steiner2, output_file, instance_uid, vertex_indices, polygon, obtuse_after, method, parameters);
+		export_to_json(cdt, steiner2, output_file, instance_uid, vertex_indices, polygon, obtuse_after, method, parameters, randomization);
 
 	} else {
 		bool delaunay = json_value.at("delaunay").as_bool();
@@ -262,14 +272,14 @@ void process_file(const string& filename, bool preselected, string output_file =
 		if( method == "local" ) {
 			cout << "Using Local Search" << '\n';
     		int L = parameters.at("L").as_int64();
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value, random);
 		}
 		else if ( method == "sa" ) {
 			cout << "Using Simulated Annealing" << '\n';
 			double alpha = parameters.at("alpha").as_double();
 			double beta = parameters.at("beta").as_double();
 			int L = parameters.at("L").as_int64();
-			simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices, convergence_value);
+			simulated_annealing_opt(cdt, polygon, steiner2, alpha, beta, L, vertex_indices, convergence_value, random);
 		} else if ( method == "ant" ) {
 			cout << "Using Ant Colony" << endl;
 			double alpha = parameters.at("alpha").as_double();
@@ -279,13 +289,13 @@ void process_file(const string& filename, bool preselected, string output_file =
 			double lambda = parameters.at("lambda").as_double();
 			int kappa = parameters.at("kappa").as_int64();
 			int L = parameters.at("L").as_int64();
-			ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices, convergence_value);
+			ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, kappa, L, vertex_indices, convergence_value, random);
 		} else {
 			throw invalid_argument("Invalid minimization option");
 		}
 		int obtuse_count = count_obtuse_angles(cdt, polygon);
 		steiner.insert(steiner.end(), steiner2.begin(), steiner2.end());
-		// export_to_json(cdt, steiner, output_file, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters);
+		export_to_json(cdt, steiner, output_file, instance_uid, vertex_indices, polygon, obtuse_count, method, parameters, randomization);
 	
 	}
 	// CGAL::draw(cdt);

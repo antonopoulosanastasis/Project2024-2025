@@ -219,7 +219,7 @@ void update_pheromones(CDT& cdt, double pheromone[], const double& alpha, const 
 }
 
 void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& steiner, const double& alpha, const double& beta,
-							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index, long double& convergence_value) {
+							 const int& xi, const int& psi, const double& lambda, const int& kappa, const int& L, map<Point, int>& index, long double& convergence_value, bool random) {
 
 	
 	double pheromone[4] = {1.0, 1.0, 1.0, 1.0};
@@ -227,7 +227,13 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 	random_device rd;
 	mt19937 gen(rd());
 	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
-	int random_points = count_obtuse_angles(cdt, polygon) / 4; // Number of random points to insert
+	int random_points;
+	if(random) {
+		random_points = count_obtuse_angles(cdt, polygon) / 4; // Number of random points to insert
+	}
+	else{
+		random_points = 0;
+	}
 	for (int cycle = 0; cycle < L; cycle++) {
 		bool point_added_this_iteration = false;  // Track if we add a point in this iteration
 		map<Point, int> good_ants; // Tracks points and their associated methods
