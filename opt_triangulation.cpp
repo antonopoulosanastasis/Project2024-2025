@@ -252,12 +252,6 @@ void process_file(const string& filename, bool preselected, string output_file) 
 			{"kappa", 80}
 		};
 		int obtuse_after = count_obtuse_angles(cdt, polygon);
-		if(case_result == "C") {
-			int width = 25;
-			//cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
-			//<< setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
-		}
-
 		export_to_json(cdt, steiner2, output_file, instance_uid, vertex_indices, polygon, obtuse_after, method, parameters, randomization);
 
 	} else {
@@ -327,7 +321,7 @@ void* workerThread(void* arg) {
 
 		// Read the input JSON file
 		ifstream inputFile(file);
-        if (!inputFile) {
+		if (!inputFile) {
 			throw runtime_error("Failed to open input file: " + file);
 		}
 
@@ -368,9 +362,6 @@ void process_directory(const string& directory_path) {
 		return;
 	}
 
-	// int width = 25;
-	// cout << left << setw(80) << "File:"  << setw(width) << "Before" << setw(width)  << "After"  << setw(width) << "Steiner"  
-		// << setw(width) << "convergence_value" << setw(40) << "Energy" << endl;
 	for (const auto& entry : fs::directory_iterator(dir_path)) {
 		if (fs::is_regular_file(entry) && entry.path().extension() == ".json") {
 			string file = entry.path().string();
