@@ -8,6 +8,7 @@
 #include "circumcenter.h"
 #include "ant_colony.h"
 #include "adjacent.h"
+#include "random_steiner.h"
 #include "obtuse.h"
 #include "simulated_annealing.h"	// for Energy computation
 
@@ -226,7 +227,9 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 	random_device rd;
 	mt19937 gen(rd());
 	map<int, int> obtuse_counts; // Vector to hold obtuse count every time we insert a steiner point
+	int random_points = count_obtuse_angles(cdt, polygon) / 4; // Number of random points to insert
 	for (int cycle = 0; cycle < L; cycle++) {
+		bool point_added_this_iteration = false;  // Track if we add a point in this iteration
 		map<Point, int> good_ants; // Tracks points and their associated methods
 		CDT cycle_best = cdt;
 		double cycle_best_score = evaluate_triangulation(cycle_best, polygon, steiner.size(), alpha, beta);
@@ -287,9 +290,34 @@ void ant_colony_optimization(CDT& cdt, Polygon_2& polygon, vector<Point_2>& stei
 				index[steiner_point] = index.size();
 				good_ants[steiner_point] = method; // Record the method used for pheromone updates
 				obtuse_counts[steiner.size()] = count_obtuse_angles(cdt, polygon);
+				point_added_this_iteration = true;
 			}
 		}
-
+		// If no point was added in this iteration, add random point
+        if (!point_added_this_iteration) {
+			if(random_points > 0) {
+				for (Face_handle face : cycle_best.finite_face_handles()) {
+					int obtuse_index = find_obtuse_angle_index(face);
+					if(obtuse_index == -1 || is_point_outside_polygon(polygon, get_centroid(face))) {
+						continue;
+					}
+					Point r_insert = steiner_random_at_face(face, polygon);
+					if( !((r_insert.x() == 0.5) && (r_insert.y() == 0.5))) {
+						// make sure we dont insert a point out of bounds
+						// as the offset could set the centroid out of bounds
+						if(is_point_outside_polygon(polygon, r_insert)) {
+							r_insert = get_centroid(face);
+						}
+						cycle_best.insert(r_insert);
+						steiner.emplace_back(r_insert);
+						index[r_insert] = index.size();
+						obtuse_counts[steiner.size()] = count_obtuse_angles(cycle_best, polygon);
+						random_points--;
+						break;
+					}
+				}
+			}
+		}
 		// Update the CDT and pheromones
 		cdt = cycle_best;
 		update_pheromones(cdt, pheromone, alpha, beta, lambda, good_ants, polygon, steiner);

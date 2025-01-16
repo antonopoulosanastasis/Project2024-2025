@@ -207,23 +207,28 @@ void process_file(const string& filename, bool preselected, string output_file =
 		int obtuse_before = count_obtuse_angles(cdt, polygon);
 		if(case_result == "A") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
-			method = "local";
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
+			method = "ant";
 		} else if (case_result == "B") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
 			method = "local";
 		} else if (case_result == "C") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
 			method = "local";
 		} else if (case_result == "D") {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			// ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
 			method = "local";
 		} else {
 			// simulated_annealing_opt(cdt, polygon, steiner2, 3, 0.5, L, vertex_indices, convergence_value);
-			local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			//local_search_opt(cdt, polygon, L, steiner2, vertex_indices, convergence_value);
+			ant_colony_optimization(cdt, polygon, steiner2, alpha, beta, xi, psi, lambda, 80, 50, vertex_indices, convergence_value);
 			method = "local";
 		}
 		
@@ -236,10 +241,12 @@ void process_file(const string& filename, bool preselected, string output_file =
 			{"lambda", 6E-1},
 			{"kappa", 80}
 		};
-		int obtuse_after = count_obtuse_angles(cdt, polygon);
-		int width = 25;
-		cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
-		  << setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
+		if(case_result == "E") {
+			int obtuse_after = count_obtuse_angles(cdt, polygon);
+			int width = 25;
+			cout << left << setw(80) << filename  << setw(width) << obtuse_before << setw(width)  << obtuse_after  << setw(width) << steiner2.size()
+			<< setw(width) << convergence_value << setw(width) << 3 * obtuse_after + 0.5 * steiner2.size() << endl;
+		}
 
 		// export_to_json(cdt, steiner2, output_file, instance_uid, vertex_indices, polygon, obtuse_after, method, parameters);
 
